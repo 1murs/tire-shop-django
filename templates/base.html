@@ -42,10 +42,10 @@
         <nav class="nav-links">
           <a href="{% url 'catalog:tire_list' %}" class="nav-link">Шини</a>
           <a href="{% url 'catalog:disk_list' %}" class="nav-link">Диски</a>
-          <a href="#pre-order" class="nav-link">Попереднє замовлення</a>
-          <a href="#delivery" class="nav-link">Оплата і доставка</a>
-          <a href="#contacts" class="nav-link">Контакти</a>
-          <a href="#about" class="nav-link">Про нас</a>
+          <a href="{% url 'catalog:index' %}#pre-order" class="nav-link">Попереднє замовлення</a>
+          <a href="{% url 'catalog:index' %}#delivery" class="nav-link">Оплата і доставка</a>
+          <a href="{% url 'catalog:index' %}#contacts" class="nav-link">Контакти</a>
+          <a href="{% url 'catalog:index' %}#about" class="nav-link">Про нас</a>
         </nav>
 
         <div class="header-actions">
@@ -94,10 +94,10 @@
           </div>
 
           <div class="footer-col">
-            <a href="#about" class="footer-link">Про нас</a>
-            <a href="#delivery" class="footer-link">Оплата та доставка</a>
-            <a href="#pre-order" class="footer-link">Гарантія та повернення</a>
-            <a href="#contacts" class="footer-link">Контакти</a>
+            <a href="{% url 'catalog:index' %}#about" class="footer-link">Про нас</a>
+            <a href="{% url 'catalog:index' %}#delivery" class="footer-link">Оплата та доставка</a>
+            <a href="{% url 'catalog:index' %}#pre-order" class="footer-link">Гарантія та повернення</a>
+            <a href="{% url 'catalog:index' %}#contacts" class="footer-link">Контакти</a>
           </div>
 
           <div class="footer-contacts">

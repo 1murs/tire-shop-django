@@ -1,0 +1,45 @@
+{% extends 'base.html' %}
+
+{% block title %}
+  Шини - КМ/Ч 120
+{% endblock %}
+
+{% block content %}
+  <section class="section">
+    <div class="container">
+      <h1 class="section-title-centered">Шини</h1>
+
+      <div class="products-grid">
+        {% for tire in tires %}
+          <div class="product-card">
+            <div class="product-image">
+              {% if tire.image %}
+                <img src="{{ tire.image.url }}" alt="{{ tire }}" />
+              {% else %}
+                <img src="https://picsum.photos/seed/tire{{ tire.id }}/400/400" alt="{{ tire }}" />
+              {% endif %}
+            </div>
+            <h3 class="product-name">{{ tire }}</h3>
+            <div class="product-price">{{ tire.price|floatformat:2 }} ₴</div>
+            <div class="product-footer">
+              {% if tire.in_stock %}
+                <span class="product-status available">Є в наявності</span>
+              {% else %}
+                <span class="product-status pre-order">Під замовлення</span>
+              {% endif %}
+              <button class="cart-add-btn" aria-label="Додати в кошик">
+                <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"></path>
+                  <line x1="3" y1="6" x2="21" y2="6"></line>
+                  <path d="M16 10a4 4 0 0 1-8 0"></path>
+                </svg>
+              </button>
+            </div>
+          </div>
+        {% empty %}
+          <p>Шин поки немає в каталозі</p>
+        {% endfor %}
+      </div>
+    </div>
+  </section>
+{% endblock %}
