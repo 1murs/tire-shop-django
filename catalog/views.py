@@ -1,5 +1,4 @@
-# catalog/views.py
-
+from django.core.paginator import Paginator
 from django.shortcuts import render
 from .models import Tire, Disk
 
@@ -38,11 +37,11 @@ def index(request):
 
 
 def tire_list(request):
-    """
-    List of all tires.
-    TODO: Add filtering later.
-    """
-    tires = Tire.objects.all()
+    """List of all tires with pagination."""
+    tires_all = Tire.objects.all()
+    paginator = Paginator(tires_all, 15)
+    page_number = request.GET.get("page")
+    tires = paginator.get_page(page_number)
 
     context = {
         "tires": tires,
@@ -51,11 +50,12 @@ def tire_list(request):
 
 
 def disk_list(request):
-    """
-    List of all disks.
-    TODO: Add filtering later.
-    """
-    disks = Disk.objects.all()
+    """List of all disks with pagination."""
+
+    disks_all = Disk.objects.all()
+    paginator = Paginator(disks_all, 15)
+    page_number = request.GET.get("page")
+    disks = paginator.get_page(page_number)
 
     context = {
         "disks": disks,

@@ -40,6 +40,51 @@
           <p>Дисків поки немає в каталозі</p>
         {% endfor %}
       </div>
+
+      <!-- Pagination -->
+      {% if disks.has_other_pages %}
+        <div class="pagination">
+          {% if disks.has_previous %}
+            <a href="?page=1" class="pagination-btn" title="Перша сторінка">
+              <svg class="icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <polyline points="11 17 6 12 11 7"></polyline>
+                <polyline points="18 17 13 12 18 7"></polyline>
+              </svg>
+            </a>
+            <a href="?page={{ disks.previous_page_number }}" class="pagination-btn" title="Попередня">
+              <svg class="icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <polyline points="15 18 9 12 15 6"></polyline>
+              </svg>
+            </a>
+          {% endif %}
+
+          {% for num in disks.paginator.page_range %}
+            {% if disks.number == num %}
+              <span class="pagination-num active">{{ num }}</span>
+            {% elif num > disks.number|add:'-3' and num < disks.number|add:'3' %}
+              <a href="?page={{ num }}" class="pagination-num">{{ num }}</a>
+            {% elif num == 1 or num == disks.paginator.num_pages %}
+              <a href="?page={{ num }}" class="pagination-num">{{ num }}</a>
+            {% elif num == disks.number|add:'-3' or num == disks.number|add:'3' %}
+              <span class="pagination-dots">...</span>
+            {% endif %}
+          {% endfor %}
+
+          {% if disks.has_next %}
+            <a href="?page={{ disks.next_page_number }}" class="pagination-btn" title="Наступна">
+              <svg class="icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <polyline points="9 18 15 12 9 6"></polyline>
+              </svg>
+            </a>
+            <a href="?page={{ disks.paginator.num_pages }}" class="pagination-btn" title="Остання сторінка">
+              <svg class="icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <polyline points="13 17 18 12 13 7"></polyline>
+                <polyline points="6 17 11 12 6 7"></polyline>
+              </svg>
+            </a>
+          {% endif %}
+        </div>
+      {% endif %}
     </div>
   </section>
-{% endblock %}```
+{% endblock %}
