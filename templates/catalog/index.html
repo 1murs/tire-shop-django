@@ -1,0 +1,193 @@
+{% extends 'base.html' %}
+
+{% block title %}
+  КМ/Ч 120 - Інтернет-магазин шин та дисків
+{% endblock %}
+
+{% block content %}
+  <!-- Hero Section -->
+  <section id="hero" class="hero">
+    <div class="hero-content">
+      <div class="hero-title">
+        <h1>Підібрати</h1>
+        <div class="tab-toggle">
+          <button class="tab-btn active">ШИНИ</button>
+          <button class="tab-btn">ДИСКИ</button>
+        </div>
+      </div>
+
+      <div class="filter-bar">
+        <div class="filter-grid">
+          <div class="filter-item">
+            <span>Діаметр</span>
+            <svg class="icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polyline points="6 9 12 15 18 9"></polyline>
+            </svg>
+          </div>
+          <div class="filter-item">
+            <span>Ширина</span>
+            <svg class="icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polyline points="6 9 12 15 18 9"></polyline>
+            </svg>
+          </div>
+          <div class="filter-item">
+            <span>Профіль</span>
+            <svg class="icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polyline points="6 9 12 15 18 9"></polyline>
+            </svg>
+          </div>
+          <div class="filter-item">
+            <span>Сезон</span>
+            <svg class="icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polyline points="6 9 12 15 18 9"></polyline>
+            </svg>
+          </div>
+          <div class="filter-item">
+            <span>Бренд</span>
+            <svg class="icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polyline points="6 9 12 15 18 9"></polyline>
+            </svg>
+          </div>
+        </div>
+        <button class="filter-submit">Підібрати</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- Recommended Products -->
+  <section id="products" class="section">
+    <div class="container">
+      <div class="section-header">
+        <h2 class="section-title">Ми рекомендуємо</h2>
+        <div class="slider-controls">
+          <button class="slider-btn">
+            <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polyline points="15 18 9 12 15 6"></polyline>
+            </svg>
+          </button>
+          <button class="slider-btn">
+            <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polyline points="9 18 15 12 9 6"></polyline>
+            </svg>
+          </button>
+        </div>
+      </div>
+
+      <div class="products-grid">
+        {% for tire in featured_tires %}
+          <div class="product-card">
+            <div class="product-image">
+              {% if tire.image %}
+                <img src="{{ tire.image.url }}" alt="{{ tire }}" />
+              {% else %}
+                <img src="https://picsum.photos/seed/tire{{ tire.id }}/400/400" alt="{{ tire }}" />
+              {% endif %}
+            </div>
+            <h3 class="product-name">{{ tire }}</h3>
+            <div class="product-price">{{ tire.price|floatformat:2 }} ₴</div>
+            <div class="product-footer">
+              {% if tire.in_stock %}
+                <span class="product-status available">Є в наявності</span>
+              {% else %}
+                <span class="product-status pre-order">Під замовлення</span>
+              {% endif %}
+              <button class="cart-add-btn" aria-label="Додати в кошик">
+                <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"></path>
+                  <line x1="3" y1="6" x2="21" y2="6"></line>
+                  <path d="M16 10a4 4 0 0 1-8 0"></path>
+                </svg>
+              </button>
+            </div>
+          </div>
+        {% empty %}
+          <p>Товари скоро з'являться</p>
+        {% endfor %}
+      </div>
+    </div>
+  </section>
+
+  <!-- Info Boxes -->
+  <section class="section">
+    <div class="container">
+      <div class="info-grid">
+        <div class="info-box">
+          <svg class="info-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <rect x="1" y="3" width="15" height="13"></rect>
+            <polygon points="16 8 20 8 23 11 23 16 16 16 16 8"></polygon>
+            <circle cx="5.5" cy="18.5" r="2.5"></circle>
+            <circle cx="18.5" cy="18.5" r="2.5"></circle>
+          </svg>
+          <span class="info-text">Швидка доставка</span>
+        </div>
+        <div class="info-box">
+          <svg class="info-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polyline points="23 4 23 10 17 10"></polyline>
+            <polyline points="1 20 1 14 7 14"></polyline>
+            <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path>
+          </svg>
+          <span class="info-text">14 днів на обмін або повернення</span>
+        </div>
+        <div class="info-box">
+          <svg class="info-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M7 10v12"></path>
+            <path d="M15 5.88 14 10h5.83a2 2 0 0 1 1.92 2.56l-2.33 8A2 2 0 0 1 17.5 22H4a2 2 0 0 1-2-2v-8a2 2 0 0 1 2-2h2.76a2 2 0 0 0 1.79-1.11L12 2h0a3.13 3.13 0 0 1 3 3.88Z"></path>
+          </svg>
+          <span class="info-text">97% позитивних відгуків</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Category Grid -->
+  <section id="tires" class="section-sm">
+    <div class="container">
+      <div class="category-grid">
+        <a href="{% url 'catalog:tire_list' %}?season=winter" class="category-large">
+          <img src="https://images.unsplash.com/photo-1621259182978-f09e5e2ca846?auto=format&fit=crop&q=80&w=1000" alt="Зимові шини" />
+          <div class="category-label-container">
+            <span class="category-label">Зимові шини</span>
+          </div>
+        </a>
+        <div class="category-small">
+          <a href="{% url 'catalog:disk_list' %}" class="category-item">
+            <img src="https://images.unsplash.com/photo-1549413247-f49c5e32400e?auto=format&fit=crop&q=80&w=800" alt="Диски" />
+            <div class="category-label-container-sm">
+              <span class="category-label-sm">Диски</span>
+            </div>
+          </a>
+          <a href="{% url 'catalog:tire_list' %}?season=summer" class="category-item">
+            <img src="https://images.unsplash.com/photo-1594731802111-070045ac69b0?auto=format&fit=crop&q=80&w=800" alt="Літні Шини" />
+            <div class="category-label-container-sm">
+              <span class="category-label-sm">Літні Шини</span>
+            </div>
+          </a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- About Section -->
+  <section id="about" class="section content-section">
+    <div class="container-narrow">
+      <h2 class="section-title-centered">Про нас</h2>
+      <div class="content-text">
+        <p>Ми - команда професіоналів, які спеціалізуються на продажу високоякісних шин та дисків для легкових автомобілів.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Contacts Section -->
+  <section id="contacts" class="section content-section">
+    <div class="container-narrow">
+      <h2 class="section-title-centered">Контакти</h2>
+      <div class="content-text">
+        <p class="contact-phone">
+          <a href="tel:+380963870223">+38 (096) 38-70-223</a><br />
+          <a href="tel:+380508572399">+38 (050) 857-23-99</a>
+        </p>
+        <p>Понеділок - П'ятниця: 9:00 - 18:00</p>
+      </div>
+    </div>
+  </section>
+{% endblock %}
