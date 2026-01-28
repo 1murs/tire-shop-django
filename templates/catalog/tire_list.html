@@ -9,82 +9,195 @@
     <div class="container">
       <h1 class="section-title-centered">Шини</h1>
 
-      <div class="products-grid">
-        {% for tire in tires %}
-          <div class="product-card">
-            <div class="product-image">
-              {% if tire.image %}
-                <img src="{{ tire.image.url }}" alt="{{ tire }}" />
-              {% else %}
-                <img src="https://picsum.photos/seed/tire{{ tire.id }}/400/400" alt="{{ tire }}" />
-              {% endif %}
+      <div class="catalog-layout">
+        <!-- Sidebar Filters (Left) -->
+        <aside class="catalog-sidebar">
+          <form method="get" class="sidebar-filters">
+            <div class="sidebar-header">
+              <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon>
+              </svg>
+              <span>Підбір шин</span>
             </div>
-            <h3 class="product-name">{{ tire }}</h3>
-            <div class="product-price">{{ tire.price|floatformat:2 }} ₴</div>
-            <div class="product-footer">
-              {% if tire.in_stock %}
-                <span class="product-status available">Є в наявності</span>
-              {% else %}
-                <span class="product-status pre-order">Під замовлення</span>
-              {% endif %}
-              <button class="cart-add-btn" aria-label="Додати в кошик">
-                <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                  <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"></path>
-                  <line x1="3" y1="6" x2="21" y2="6"></line>
-                  <path d="M16 10a4 4 0 0 1-8 0"></path>
-                </svg>
-              </button>
+
+            <div class="filter-section">
+              <label class="filter-label" for="diameter">Діаметр</label>
+              <select name="diameter" id="diameter" class="filter-select">
+                <option value="">Всі</option>
+                {% for d in filter_options.diameters %}
+                  <option value="{{ d }}" {% if current_filters.diameter == d|stringformat:"s" %}selected{% endif %}>
+                    R{{ d }}
+                  </option>
+                {% endfor %}
+              </select>
             </div>
+
+            <div class="filter-section">
+              <label class="filter-label" for="width">Ширина</label>
+              <select name="width" id="width" class="filter-select">
+                <option value="">Всі</option>
+                {% for w in filter_options.widths %}
+                  <option value="{{ w }}" {% if current_filters.width == w|stringformat:"s" %}selected{% endif %}>
+                    {{ w }} мм
+                  </option>
+                {% endfor %}
+              </select>
+            </div>
+
+            <div class="filter-section">
+              <label class="filter-label" for="profile">Профіль</label>
+              <select name="profile" id="profile" class="filter-select">
+                <option value="">Всі</option>
+                {% for p in filter_options.profiles %}
+                  <option value="{{ p }}" {% if current_filters.profile == p|stringformat:"s" %}selected{% endif %}>
+                    {{ p }}
+                  </option>
+                {% endfor %}
+              </select>
+            </div>
+
+            <div class="filter-section">
+              <label class="filter-label" for="season">Сезон</label>
+              <select name="season" id="season" class="filter-select">
+                <option value="">Всі</option>
+                {% for value, label in filter_options.seasons %}
+                  <option value="{{ value }}" {% if current_filters.season == value %}selected{% endif %}>
+                    {{ label }}
+                  </option>
+                {% endfor %}
+              </select>
+            </div>
+
+            <div class="filter-section">
+              <label class="filter-label" for="brand">Бренд</label>
+              <select name="brand" id="brand" class="filter-select">
+                <option value="">Всі бренди</option>
+                {% for brand in filter_options.brands %}
+                  <option value="{{ brand.slug }}" {% if current_filters.brand == brand.slug %}selected{% endif %}>
+                    {{ brand.name }}
+                  </option>
+                {% endfor %}
+              </select>
+            </div>
+
+            <div class="filter-section">
+              <label class="filter-label" for="load_index">Індекс навантаження</label>
+              <select name="load_index" id="load_index" class="filter-select">
+                <option value="">Всі</option>
+                {% for li in filter_options.load_indices %}
+                  <option value="{{ li }}" {% if current_filters.load_index == li|stringformat:"s" %}selected{% endif %}>
+                    {{ li }}
+                  </option>
+                {% endfor %}
+              </select>
+            </div>
+
+            <div class="filter-section">
+              <label class="filter-label" for="speed_index">Індекс швидкості</label>
+              <select name="speed_index" id="speed_index" class="filter-select">
+                <option value="">Всі</option>
+                {% for si in filter_options.speed_indices %}
+                  <option value="{{ si }}" {% if current_filters.speed_index == si %}selected{% endif %}>
+                    {{ si }}
+                  </option>
+                {% endfor %}
+              </select>
+            </div>
+
+            <div class="filter-buttons">
+              <button type="submit" class="btn btn-primary btn-block">Підібрати</button>
+              <a href="{% url 'catalog:tire_list' %}" class="btn btn-secondary btn-block">Скинути</a>
+            </div>
+          </form>
+        </aside>
+
+        <!-- Main Content -->
+        <div class="catalog-main">
+          <p class="results-count">Знайдено: {{ tires.paginator.count }} шин</p>
+
+          <div class="products-grid">
+            {% for tire in tires %}
+              <a href="{% url 'catalog:tire_detail' tire.slug %}" class="product-card-link">
+                <div class="product-card">
+                  <div class="product-image">
+                    {% if tire.image %}
+                      <img src="{{ tire.image.url }}" alt="{{ tire }}" />
+                    {% else %}
+                      <img src="https://picsum.photos/seed/tire{{ tire.id }}/400/400" alt="{{ tire }}" />
+                    {% endif %}
+                  </div>
+                  <h3 class="product-name">{{ tire }}</h3>
+                  <div class="product-price">{{ tire.price|floatformat:0 }} ₴</div>
+                  <div class="product-footer">
+                    {% if tire.in_stock %}
+                      <span class="product-status available">В наявності</span>
+                    {% else %}
+                      <span class="product-status pre-order">Під замовлення</span>
+                    {% endif %}
+                    <button class="cart-add-btn" onclick="addToCart('tire', {{ tire.id }}, event)" title="Додати в кошик">
+                      <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"></path>
+                        <line x1="3" y1="6" x2="21" y2="6"></line>
+                        <path d="M16 10a4 4 0 0 1-8 0"></path>
+                      </svg>
+                    </button>
+                  </div>
+                </div>
+              </a>
+            {% empty %}
+              <div class="empty-results">
+                <p>За вашим запитом шин не знайдено.</p>
+                <a href="{% url 'catalog:tire_list' %}" class="btn btn-primary">Показати всі шини</a>
+              </div>
+            {% endfor %}
           </div>
-        {% empty %}
-          <p>Шин поки немає в каталозі</p>
-        {% endfor %}
-      </div>
 
-      <!-- Pagination -->
-      {% if disks.has_other_pages %}
-        <div class="pagination">
-          {% if disks.has_previous %}
-            <a href="?page=1" class="pagination-btn" title="Перша сторінка">
-              <svg class="icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <polyline points="11 17 6 12 11 7"></polyline>
-                <polyline points="18 17 13 12 18 7"></polyline>
-              </svg>
-            </a>
-            <a href="?page={{ disks.previous_page_number }}" class="pagination-btn" title="Попередня">
-              <svg class="icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <polyline points="15 18 9 12 15 6"></polyline>
-              </svg>
-            </a>
-          {% endif %}
+          <!-- Pagination -->
+          {% if tires.has_other_pages %}
+            <div class="pagination">
+              {% if tires.has_previous %}
+                <a href="?{% if current_filters.diameter %}diameter={{ current_filters.diameter }}&{% endif %}{% if current_filters.width %}width={{ current_filters.width }}&{% endif %}{% if current_filters.profile %}profile={{ current_filters.profile }}&{% endif %}{% if current_filters.season %}season={{ current_filters.season }}&{% endif %}{% if current_filters.brand %}brand={{ current_filters.brand }}&{% endif %}{% if current_filters.load_index %}load_index={{ current_filters.load_index }}&{% endif %}{% if current_filters.speed_index %}speed_index={{ current_filters.speed_index }}&{% endif %}page=1" class="pagination-btn" title="Перша сторінка">
+                  <svg class="icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <polyline points="11 17 6 12 11 7"></polyline>
+                    <polyline points="18 17 13 12 18 7"></polyline>
+                  </svg>
+                </a>
+                <a href="?{% if current_filters.diameter %}diameter={{ current_filters.diameter }}&{% endif %}{% if current_filters.width %}width={{ current_filters.width }}&{% endif %}{% if current_filters.profile %}profile={{ current_filters.profile }}&{% endif %}{% if current_filters.season %}season={{ current_filters.season }}&{% endif %}{% if current_filters.brand %}brand={{ current_filters.brand }}&{% endif %}{% if current_filters.load_index %}load_index={{ current_filters.load_index }}&{% endif %}{% if current_filters.speed_index %}speed_index={{ current_filters.speed_index }}&{% endif %}page={{ tires.previous_page_number }}" class="pagination-btn" title="Попередня">
+                  <svg class="icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <polyline points="15 18 9 12 15 6"></polyline>
+                  </svg>
+                </a>
+              {% endif %}
 
-          {% for num in disks.paginator.page_range %}
-            {% if disks.number == num %}
-              <span class="pagination-num active">{{ num }}</span>
-            {% elif num > disks.number|add:'-3' and num < disks.number|add:'3' %}
-              <a href="?page={{ num }}" class="pagination-num">{{ num }}</a>
-            {% elif num == 1 or num == disks.paginator.num_pages %}
-              <a href="?page={{ num }}" class="pagination-num">{{ num }}</a>
-            {% elif num == disks.number|add:'-3' or num == disks.number|add:'3' %}
-              <span class="pagination-dots">...</span>
-            {% endif %}
-          {% endfor %}
+              {% for num in tires.paginator.page_range %}
+                {% if tires.number == num %}
+                  <span class="pagination-num active">{{ num }}</span>
+                {% elif num > tires.number|add:'-3' and num < tires.number|add:'3' %}
+                  <a href="?{% if current_filters.diameter %}diameter={{ current_filters.diameter }}&{% endif %}{% if current_filters.width %}width={{ current_filters.width }}&{% endif %}{% if current_filters.profile %}profile={{ current_filters.profile }}&{% endif %}{% if current_filters.season %}season={{ current_filters.season }}&{% endif %}{% if current_filters.brand %}brand={{ current_filters.brand }}&{% endif %}{% if current_filters.load_index %}load_index={{ current_filters.load_index }}&{% endif %}{% if current_filters.speed_index %}speed_index={{ current_filters.speed_index }}&{% endif %}page={{ num }}" class="pagination-num">{{ num }}</a>
+                {% elif num == 1 or num == tires.paginator.num_pages %}
+                  <a href="?{% if current_filters.diameter %}diameter={{ current_filters.diameter }}&{% endif %}{% if current_filters.width %}width={{ current_filters.width }}&{% endif %}{% if current_filters.profile %}profile={{ current_filters.profile }}&{% endif %}{% if current_filters.season %}season={{ current_filters.season }}&{% endif %}{% if current_filters.brand %}brand={{ current_filters.brand }}&{% endif %}{% if current_filters.load_index %}load_index={{ current_filters.load_index }}&{% endif %}{% if current_filters.speed_index %}speed_index={{ current_filters.speed_index }}&{% endif %}page={{ num }}" class="pagination-num">{{ num }}</a>
+                {% elif num == tires.number|add:'-3' or num == tires.number|add:'3' %}
+                  <span class="pagination-dots">...</span>
+                {% endif %}
+              {% endfor %}
 
-          {% if disks.has_next %}
-            <a href="?page={{ disks.next_page_number }}" class="pagination-btn" title="Наступна">
-              <svg class="icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <polyline points="9 18 15 12 9 6"></polyline>
-              </svg>
-            </a>
-            <a href="?page={{ disks.paginator.num_pages }}" class="pagination-btn" title="Остання сторінка">
-              <svg class="icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <polyline points="13 17 18 12 13 7"></polyline>
-                <polyline points="6 17 11 12 6 7"></polyline>
-              </svg>
-            </a>
+              {% if tires.has_next %}
+                <a href="?{% if current_filters.diameter %}diameter={{ current_filters.diameter }}&{% endif %}{% if current_filters.width %}width={{ current_filters.width }}&{% endif %}{% if current_filters.profile %}profile={{ current_filters.profile }}&{% endif %}{% if current_filters.season %}season={{ current_filters.season }}&{% endif %}{% if current_filters.brand %}brand={{ current_filters.brand }}&{% endif %}{% if current_filters.load_index %}load_index={{ current_filters.load_index }}&{% endif %}{% if current_filters.speed_index %}speed_index={{ current_filters.speed_index }}&{% endif %}page={{ tires.next_page_number }}" class="pagination-btn" title="Наступна">
+                  <svg class="icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <polyline points="9 18 15 12 9 6"></polyline>
+                  </svg>
+                </a>
+                <a href="?{% if current_filters.diameter %}diameter={{ current_filters.diameter }}&{% endif %}{% if current_filters.width %}width={{ current_filters.width }}&{% endif %}{% if current_filters.profile %}profile={{ current_filters.profile }}&{% endif %}{% if current_filters.season %}season={{ current_filters.season }}&{% endif %}{% if current_filters.brand %}brand={{ current_filters.brand }}&{% endif %}{% if current_filters.load_index %}load_index={{ current_filters.load_index }}&{% endif %}{% if current_filters.speed_index %}speed_index={{ current_filters.speed_index }}&{% endif %}page={{ tires.paginator.num_pages }}" class="pagination-btn" title="Остання сторінка">
+                  <svg class="icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <polyline points="13 17 18 12 13 7"></polyline>
+                    <polyline points="6 17 11 12 6 7"></polyline>
+                  </svg>
+                </a>
+              {% endif %}
+            </div>
           {% endif %}
         </div>
-      {% endif %}
+      </div>
     </div>
   </section>
 {% endblock %}

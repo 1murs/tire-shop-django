@@ -1,0 +1,116 @@
+{% extends 'base.html' %}
+
+{% block title %}
+  Пошук: {{ query }} - КМ/Ч 120
+{% endblock %}
+
+{% block content %}
+  <section class="section">
+    <div class="container">
+      <h1 class="section-title-centered">Результати пошуку</h1>
+
+      <!-- Search Form -->
+      <div class="search-page-form">
+        <form action="{% url 'catalog:search' %}" method="get" class="search-form-large">
+          <input
+            type="text"
+            name="q"
+            value="{{ query }}"
+            placeholder="Введіть назву, бренд або артикул..."
+            class="search-input-large"
+            autofocus
+          />
+          <button type="submit" class="search-btn-large">
+            <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="11" cy="11" r="8"></circle>
+              <path d="m21 21-4.35-4.35"></path>
+            </svg>
+            Знайти
+          </button>
+        </form>
+      </div>
+
+      {% if query %}
+        <p class="search-info">
+          За запитом «<strong>{{ query }}</strong>» знайдено: {{ total_count }} товарів
+        </p>
+
+        {% if tires %}
+          <h2 class="search-category-title">Шини ({{ tires|length }})</h2>
+          <div class="products-grid">
+            {% for tire in tires %}
+              <a href="{% url 'catalog:tire_detail' tire.slug %}" class="product-card-link">
+                <div class="product-card">
+                  <div class="product-image">
+                    {% if tire.image %}
+                      <img src="{{ tire.image.url }}" alt="{{ tire }}" />
+                    {% else %}
+                      <img src="https://picsum.photos/seed/tire{{ tire.id }}/400/400" alt="{{ tire }}" />
+                    {% endif %}
+                  </div>
+                  <h3 class="product-name">{{ tire }}</h3>
+                  <div class="product-price">{{ tire.price|floatformat:0 }} ₴</div>
+                  <div class="product-footer">
+                    {% if tire.in_stock %}
+                      <span class="product-status available">Є в наявності</span>
+                    {% else %}
+                      <span class="product-status pre-order">Під замовлення</span>
+                    {% endif %}
+                  </div>
+                </div>
+              </a>
+            {% endfor %}
+          </div>
+        {% endif %}
+
+        {% if disks %}
+          <h2 class="search-category-title">Диски ({{ disks|length }})</h2>
+          <div class="products-grid">
+            {% for disk in disks %}
+              <a href="{% url 'catalog:disk_detail' disk.slug %}" class="product-card-link">
+                <div class="product-card">
+                  <div class="product-image">
+                    {% if disk.image %}
+                      <img src="{{ disk.image.url }}" alt="{{ disk }}" />
+                    {% else %}
+                      <img src="https://picsum.photos/seed/disk{{ disk.id }}/400/400" alt="{{ disk }}" />
+                    {% endif %}
+                  </div>
+                  <h3 class="product-name">{{ disk }}</h3>
+                  <div class="product-price">{{ disk.price|floatformat:0 }} ₴</div>
+                  <div class="product-footer">
+                    {% if disk.in_stock %}
+                      <span class="product-status available">Є в наявності</span>
+                    {% else %}
+                      <span class="product-status pre-order">Під замовлення</span>
+                    {% endif %}
+                  </div>
+                </div>
+              </a>
+            {% endfor %}
+          </div>
+        {% endif %}
+
+        {% if not tires and not disks %}
+          <div class="search-empty">
+            <svg class="search-empty-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+              <circle cx="11" cy="11" r="8"></circle>
+              <path d="m21 21-4.35-4.35"></path>
+            </svg>
+            <p>На жаль, за вашим запитом нічого не знайдено.</p>
+            <p class="search-empty-hint">Спробуйте змінити пошуковий запит або перегляньте наш каталог:</p>
+            <div class="search-empty-links">
+              <a href="{% url 'catalog:tire_list' %}" class="btn btn-primary">Переглянути шини</a>
+              <a href="{% url 'catalog:disk_list' %}" class="btn btn-secondary">Переглянути диски</a>
+            </div>
+          </div>
+        {% endif %}
+
+      {% else %}
+        <div class="search-empty">
+          <p>Введіть пошуковий запит для пошуку товарів.</p>
+        </div>
+      {% endif %}
+    </div>
+  </section>
+{% endblock %}

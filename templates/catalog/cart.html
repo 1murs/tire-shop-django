@@ -1,0 +1,122 @@
+{% extends 'base.html' %}
+
+{% block title %}
+  Кошик - КМ/Ч 120
+{% endblock %}
+
+{% block content %}
+  <section class="section">
+    <div class="container">
+      <h1 class="section-title-centered">Кошик</h1>
+
+      {% if items %}
+        <div class="cart-container">
+          <div class="cart-items">
+            {% for item in items %}
+              <div class="cart-item" data-type="{{ item.type }}" data-id="{{ item.product.id }}">
+                <div class="cart-item-image">
+                  {% if item.product.image %}
+                    <img src="{{ item.product.image.url }}" alt="{{ item.product }}" />
+                  {% else %}
+                    <img src="https://picsum.photos/seed/{{ item.type }}{{ item.product.id }}/120/120" alt="{{ item.product }}" />
+                  {% endif %}
+                </div>
+                <div class="cart-item-info">
+                  <h3 class="cart-item-name">{{ item.product }}</h3>
+                  <p class="cart-item-article">Артикул: {{ item.product.article }}</p>
+                </div>
+                <div class="cart-item-quantity">
+                  <button class="qty-btn" onclick="updateQuantity('{{ item.type }}', {{ item.product.id }}, -1)">−</button>
+                  <span class="qty-value" id="qty-{{ item.type }}-{{ item.product.id }}">{{ item.quantity }}</span>
+                  <button class="qty-btn" onclick="updateQuantity('{{ item.type }}', {{ item.product.id }}, 1)">+</button>
+                </div>
+                <div class="cart-item-price">
+                  <span class="price-per-item">{{ item.product.price|floatformat:0 }} ₴/шт</span>
+                  <span class="price-total" id="total-{{ item.type }}-{{ item.product.id }}">{{ item.total|floatformat:0 }} ₴</span>
+                </div>
+                <button class="cart-item-remove" onclick="removeItem('{{ item.type }}', {{ item.product.id }})" title="Видалити">
+                  <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <line x1="18" y1="6" x2="6" y2="18"></line>
+                    <line x1="6" y1="6" x2="18" y2="18"></line>
+                  </svg>
+                </button>
+              </div>
+            {% endfor %}
+          </div>
+
+          <div class="cart-summary">
+            <div class="cart-summary-box">
+              <h3>Разом</h3>
+              <div class="summary-row">
+                <span>Товарів:</span>
+                <span id="summary-count">{{ item_count }} шт</span>
+              </div>
+              <div class="summary-row summary-total">
+                <span>До сплати:</span>
+                <span id="summary-total">{{ total|floatformat:0 }} ₴</span>
+              </div>
+              <button class="btn btn-accent btn-lg btn-block" onclick="alert('Оформлення замовлення в розробці')">
+                Оформити замовлення
+              </button>
+              <a href="{% url 'catalog:tire_list' %}" class="btn btn-secondary btn-block">Продовжити покупки</a>
+            </div>
+          </div>
+        </div>
+      {% else %}
+        <div class="cart-empty">
+          <svg class="cart-empty-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+            <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"></path>
+            <line x1="3" y1="6" x2="21" y2="6"></line>
+            <path d="M16 10a4 4 0 0 1-8 0"></path>
+          </svg>
+          <h2>Кошик порожній</h2>
+          <p>Додайте товари з каталогу</p>
+          <div class="cart-empty-actions">
+            <a href="{% url 'catalog:tire_list' %}" class="btn btn-primary">Переглянути шини</a>
+            <a href="{% url 'catalog:disk_list' %}" class="btn btn-secondary">Переглянути диски</a>
+          </div>
+        </div>
+      {% endif %}
+    </div>
+  </section>
+
+  <script>
+    function updateQuantity(type, id, delta) {
+      const qtyEl = document.getElementById(`qty-${type}-${id}`);
+      let qty = parseInt(qtyEl.textContent) + delta;
+      if (qty < 1) qty = 1;
+
+      fetch('{% url "catalog:cart_update" %}', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRFToken': '{{ csrf_token }}'
+        },
+        body: JSON.stringify({ type: type, id: id, quantity: qty })
+      })
+      .then(r => r.json())
+      .then(data => {
+        if (data.success) {
+          location.reload();
+        }
+      });
+    }
+
+    function removeItem(type, id) {
+      fetch('{% url "catalog:cart_remove" %}', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRFToken': '{{ csrf_token }}'
+        },
+        body: JSON.stringify({ type: type, id: id })
+      })
+      .then(r => r.json())
+      .then(data => {
+        if (data.success) {
+          location.reload();
+        }
+      });
+    }
+  </script>
+{% endblock %}

@@ -49,21 +49,40 @@
         </nav>
 
         <div class="header-actions">
-          <button class="icon-btn" aria-label="Пошук">
-            <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <circle cx="11" cy="11" r="8"></circle>
-              <path d="m21 21-4.35-4.35"></path>
-            </svg>
-          </button>
+          <div class="search-wrapper">
+            <button class="icon-btn search-toggle" aria-label="Пошук" onclick="toggleSearch()">
+              <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="11" cy="11" r="8"></circle>
+                <path d="m21 21-4.35-4.35"></path>
+              </svg>
+            </button>
+            <div class="search-dropdown" id="searchDropdown">
+              <form action="{% url 'catalog:search' %}" method="get" class="search-form-header">
+                <input
+                  type="text"
+                  name="q"
+                  placeholder="Пошук шин та дисків..."
+                  class="search-input-header"
+                  id="searchInput"
+                />
+                <button type="submit" class="search-submit-header">
+                  <svg class="icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="11" cy="11" r="8"></circle>
+                    <path d="m21 21-4.35-4.35"></path>
+                  </svg>
+                </button>
+              </form>
+            </div>
+          </div>
 
-          <div class="cart-btn">
+          <a href="{% url 'catalog:cart' %}" class="cart-btn">
             <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"></path>
               <line x1="3" y1="6" x2="21" y2="6"></line>
               <path d="M16 10a4 4 0 0 1-8 0"></path>
             </svg>
-            <span class="cart-badge">0</span>
-          </div>
+            <span class="cart-badge" id="cartBadge">0</span>
+          </a>
 
           <button class="callback-btn">
             <svg class="icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -123,5 +142,91 @@
         </div>
       </div>
     </footer>
+
+    <!-- Toast notification -->
+    <div class="toast" id="toast"></div>
+
+    <script>
+      function toggleSearch() {
+        const dropdown = document.getElementById('searchDropdown');
+        const input = document.getElementById('searchInput');
+        dropdown.classList.toggle('active');
+        if (dropdown.classList.contains('active')) {
+          input.focus();
+        }
+      }
+
+      // Close search when clicking outside
+      document.addEventListener('click', function(e) {
+        const wrapper = document.querySelector('.search-wrapper');
+        const dropdown = document.getElementById('searchDropdown');
+        if (wrapper && !wrapper.contains(e.target) && dropdown.classList.contains('active')) {
+          dropdown.classList.remove('active');
+        }
+      });
+
+      // Close search on Escape key
+      document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') {
+          const dropdown = document.getElementById('searchDropdown');
+          if (dropdown.classList.contains('active')) {
+            dropdown.classList.remove('active');
+          }
+        }
+      });
+
+      // Toast notification
+      function showToast(message, type = 'success') {
+        const toast = document.getElementById('toast');
+        toast.textContent = message;
+        toast.className = 'toast show ' + type;
+        setTimeout(() => { toast.className = 'toast'; }, 3000);
+      }
+
+      // Update cart badge
+      function updateCartBadge(count) {
+        const badge = document.getElementById('cartBadge');
+        if (badge) {
+          badge.textContent = count;
+          badge.style.display = count > 0 ? 'flex' : 'none';
+        }
+      }
+
+      // Add to cart function
+      function addToCart(type, id, event) {
+        if (event) {
+          event.preventDefault();
+          event.stopPropagation();
+        }
+
+        fetch('{% url "catalog:cart_add" %}', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': '{{ csrf_token }}'
+          },
+          body: JSON.stringify({ type: type, id: id, quantity: 1 })
+        })
+        .then(r => r.json())
+        .then(data => {
+          if (data.success) {
+            showToast(data.message, 'success');
+            updateCartBadge(data.cart_count);
+          } else {
+            showToast(data.error || 'Помилка', 'error');
+          }
+        })
+        .catch(err => {
+          showToast('Помилка з\'єднання', 'error');
+        });
+      }
+
+      // Load cart count on page load
+      document.addEventListener('DOMContentLoaded', function() {
+        fetch('{% url "catalog:cart_count" %}')
+          .then(r => r.json())
+          .then(data => updateCartBadge(data.count));
+      });
+    </script>
   </body>
 </html>

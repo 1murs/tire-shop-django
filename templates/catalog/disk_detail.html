@@ -1,0 +1,107 @@
+{% extends 'base.html' %}
+
+{% block title %}
+  {{ disk }} - КМ/Ч 120
+{% endblock %}
+
+{% block content %}
+  <section class="section">
+    <div class="container">
+      <nav class="breadcrumb">
+        <a href="{% url 'catalog:index' %}">Головна</a>
+        <span>/</span>
+        <a href="{% url 'catalog:disk_list' %}">Диски</a>
+        <span>/</span>
+        <span>{{ disk.brand.name }} {{ disk.model_name }}</span>
+      </nav>
+
+      <div class="product-detail">
+        <div class="product-detail-image">
+          {% if disk.image %}
+            <img src="{{ disk.image.url }}" alt="{{ disk }}" />
+          {% else %}
+            <img src="https://picsum.photos/seed/disk{{ disk.id }}/600/600" alt="{{ disk }}" />
+          {% endif %}
+        </div>
+
+        <div class="product-detail-info">
+          <h1 class="product-detail-title">{{ disk.brand.name }} {{ disk.model_name }}</h1>
+          <p class="product-detail-size">{{ disk.width }}x{{ disk.diameter }} {{ disk.bolts }}x{{ disk.pcd }}</p>
+
+          <div class="product-detail-price">{{ disk.price|floatformat:0 }} ₴</div>
+
+          <div class="product-detail-status">
+            {% if disk.in_stock %}
+              <span class="product-status available">Є в наявності ({{ disk.stock_quantity }} шт)</span>
+            {% else %}
+              <span class="product-status pre-order">Під замовлення</span>
+            {% endif %}
+          </div>
+
+          <div class="product-detail-actions">
+            <button class="btn btn-primary btn-lg" onclick="addToCart('disk', {{ disk.id }})">
+              <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"></path>
+                <line x1="3" y1="6" x2="21" y2="6"></line>
+                <path d="M16 10a4 4 0 0 1-8 0"></path>
+              </svg>
+              Додати в кошик
+            </button>
+            <button class="btn btn-secondary btn-lg" onclick="alert('Функція в розробці')">Купити в 1 клік</button>
+          </div>
+
+          <div class="product-specs">
+            <h3>Характеристики</h3>
+            <table class="specs-table">
+              <tr>
+                <td>Артикул</td>
+                <td>{{ disk.article }}</td>
+              </tr>
+              <tr>
+                <td>Бренд</td>
+                <td>{{ disk.brand.name }}</td>
+              </tr>
+              <tr>
+                <td>Модель</td>
+                <td>{{ disk.model_name }}</td>
+              </tr>
+              <tr>
+                <td>Діаметр</td>
+                <td>{{ disk.diameter }}"</td>
+              </tr>
+              <tr>
+                <td>Ширина</td>
+                <td>{{ disk.width }}"</td>
+              </tr>
+              <tr>
+                <td>Кріплення (PCD)</td>
+                <td>{{ disk.bolts }}x{{ disk.pcd }}</td>
+              </tr>
+              <tr>
+                <td>Виліт (ET)</td>
+                <td>{{ disk.et }} мм</td>
+              </tr>
+              <tr>
+                <td>Центральний отвір (DIA)</td>
+                <td>{{ disk.dia }} мм</td>
+              </tr>
+              <tr>
+                <td>Колір</td>
+                <td>{{ disk.color|default:"-" }}</td>
+              </tr>
+              <tr>
+                <td>Тип</td>
+                <td>
+                  {% if disk.disk_type == 'alloy' %}Литий
+                  {% elif disk.disk_type == 'steel' %}Сталевий
+                  {% else %}Кований
+                  {% endif %}
+                </td>
+              </tr>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+{% endblock %}

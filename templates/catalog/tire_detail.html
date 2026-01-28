@@ -1,0 +1,103 @@
+{% extends 'base.html' %}
+
+{% block title %}
+  {{ tire }} - КМ/Ч 120
+{% endblock %}
+
+{% block content %}
+  <section class="section">
+    <div class="container">
+      <nav class="breadcrumb">
+        <a href="{% url 'catalog:index' %}">Головна</a>
+        <span>/</span>
+        <a href="{% url 'catalog:tire_list' %}">Шини</a>
+        <span>/</span>
+        <span>{{ tire.brand.name }} {{ tire.model_name }}</span>
+      </nav>
+
+      <div class="product-detail">
+        <div class="product-detail-image">
+          {% if tire.image %}
+            <img src="{{ tire.image.url }}" alt="{{ tire }}" />
+          {% else %}
+            <img src="https://picsum.photos/seed/tire{{ tire.id }}/600/600" alt="{{ tire }}" />
+          {% endif %}
+        </div>
+
+        <div class="product-detail-info">
+          <h1 class="product-detail-title">{{ tire.brand.name }} {{ tire.model_name }}</h1>
+          <p class="product-detail-size">{{ tire.width }}/{{ tire.profile }} R{{ tire.diameter }}</p>
+
+          <div class="product-detail-price">{{ tire.price|floatformat:0 }} ₴</div>
+
+          <div class="product-detail-status">
+            {% if tire.in_stock %}
+              <span class="product-status available">Є в наявності ({{ tire.stock_quantity }} шт)</span>
+            {% else %}
+              <span class="product-status pre-order">Під замовлення</span>
+            {% endif %}
+          </div>
+
+          <div class="product-detail-actions">
+            <button class="btn btn-primary btn-lg" onclick="addToCart('tire', {{ tire.id }})">
+              <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"></path>
+                <line x1="3" y1="6" x2="21" y2="6"></line>
+                <path d="M16 10a4 4 0 0 1-8 0"></path>
+              </svg>
+              Додати в кошик
+            </button>
+            <button class="btn btn-secondary btn-lg" onclick="alert('Функція в розробці')">Купити в 1 клік</button>
+          </div>
+
+          <div class="product-specs">
+            <h3>Характеристики</h3>
+            <table class="specs-table">
+              <tr>
+                <td>Артикул</td>
+                <td>{{ tire.article }}</td>
+              </tr>
+              <tr>
+                <td>Бренд</td>
+                <td>{{ tire.brand.name }}</td>
+              </tr>
+              <tr>
+                <td>Модель</td>
+                <td>{{ tire.model_name }}</td>
+              </tr>
+              <tr>
+                <td>Ширина</td>
+                <td>{{ tire.width }} мм</td>
+              </tr>
+              <tr>
+                <td>Профіль</td>
+                <td>{{ tire.profile }}%</td>
+              </tr>
+              <tr>
+                <td>Діаметр</td>
+                <td>R{{ tire.diameter }}</td>
+              </tr>
+              <tr>
+                <td>Індекс навантаження</td>
+                <td>{{ tire.load_index }}</td>
+              </tr>
+              <tr>
+                <td>Індекс швидкості</td>
+                <td>{{ tire.speed_index }}</td>
+              </tr>
+              <tr>
+                <td>Сезон</td>
+                <td>
+                  {% if tire.season == 'summer' %}Літня
+                  {% elif tire.season == 'winter' %}Зимова
+                  {% else %}Всесезонна
+                  {% endif %}
+                </td>
+              </tr>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+{% endblock %}

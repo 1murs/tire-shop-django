@@ -9,82 +9,195 @@
     <div class="container">
       <h1 class="section-title-centered">Диски</h1>
 
-      <div class="products-grid">
-        {% for disk in disks %}
-          <div class="product-card">
-            <div class="product-image">
-              {% if disk.image %}
-                <img src="{{ disk.image.url }}" alt="{{ disk }}" />
-              {% else %}
-                <img src="https://picsum.photos/seed/disk{{ disk.id }}/400/400" alt="{{ disk }}" />
-              {% endif %}
+      <div class="catalog-layout">
+        <!-- Sidebar Filters (Left) -->
+        <aside class="catalog-sidebar">
+          <form method="get" class="sidebar-filters">
+            <div class="sidebar-header">
+              <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon>
+              </svg>
+              <span>Підбір дисків</span>
             </div>
-            <h3 class="product-name">{{ disk }}</h3>
-            <div class="product-price">{{ disk.price|floatformat:2 }} ₴</div>
-            <div class="product-footer">
-              {% if disk.in_stock %}
-                <span class="product-status available">Є в наявності</span>
-              {% else %}
-                <span class="product-status pre-order">Під замовлення</span>
-              {% endif %}
-              <button class="cart-add-btn" aria-label="Додати в кошик">
-                <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                  <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"></path>
-                  <line x1="3" y1="6" x2="21" y2="6"></line>
-                  <path d="M16 10a4 4 0 0 1-8 0"></path>
-                </svg>
-              </button>
+
+            <div class="filter-section">
+              <label class="filter-label" for="diameter">Діаметр</label>
+              <select name="diameter" id="diameter" class="filter-select">
+                <option value="">Всі</option>
+                {% for d in filter_options.diameters %}
+                  <option value="{{ d }}" {% if current_filters.diameter == d|stringformat:"s" %}selected{% endif %}>
+                    {{ d }}"
+                  </option>
+                {% endfor %}
+              </select>
             </div>
+
+            <div class="filter-section">
+              <label class="filter-label" for="width">Ширина</label>
+              <select name="width" id="width" class="filter-select">
+                <option value="">Всі</option>
+                {% for w in filter_options.widths %}
+                  <option value="{{ w }}" {% if current_filters.width == w|stringformat:"s" %}selected{% endif %}>
+                    {{ w }}J
+                  </option>
+                {% endfor %}
+              </select>
+            </div>
+
+            <div class="filter-section">
+              <label class="filter-label" for="pcd">PCD</label>
+              <select name="pcd" id="pcd" class="filter-select">
+                <option value="">Всі</option>
+                {% for p in filter_options.pcds %}
+                  <option value="{{ p }}" {% if current_filters.pcd == p|stringformat:"s" %}selected{% endif %}>
+                    {{ p }}
+                  </option>
+                {% endfor %}
+              </select>
+            </div>
+
+            <div class="filter-section">
+              <label class="filter-label" for="dia">DIA</label>
+              <select name="dia" id="dia" class="filter-select">
+                <option value="">Всі</option>
+                {% for d in filter_options.dias %}
+                  <option value="{{ d }}" {% if current_filters.dia == d|stringformat:"s" %}selected{% endif %}>
+                    {{ d }}
+                  </option>
+                {% endfor %}
+              </select>
+            </div>
+
+            <div class="filter-section">
+              <label class="filter-label" for="et">ET (виліт)</label>
+              <select name="et" id="et" class="filter-select">
+                <option value="">Всі</option>
+                {% for e in filter_options.ets %}
+                  <option value="{{ e }}" {% if current_filters.et == e|stringformat:"s" %}selected{% endif %}>
+                    {{ e }}
+                  </option>
+                {% endfor %}
+              </select>
+            </div>
+
+            <div class="filter-section">
+              <label class="filter-label" for="type">Тип диска</label>
+              <select name="type" id="type" class="filter-select">
+                <option value="">Всі</option>
+                {% for value, label in filter_options.types %}
+                  <option value="{{ value }}" {% if current_filters.type == value %}selected{% endif %}>
+                    {{ label }}
+                  </option>
+                {% endfor %}
+              </select>
+            </div>
+
+            <div class="filter-section">
+              <label class="filter-label" for="brand">Бренд</label>
+              <select name="brand" id="brand" class="filter-select">
+                <option value="">Всі бренди</option>
+                {% for brand in filter_options.brands %}
+                  <option value="{{ brand.slug }}" {% if current_filters.brand == brand.slug %}selected{% endif %}>
+                    {{ brand.name }}
+                  </option>
+                {% endfor %}
+              </select>
+            </div>
+
+            <div class="filter-buttons">
+              <button type="submit" class="btn btn-primary btn-block">Підібрати</button>
+              <a href="{% url 'catalog:disk_list' %}" class="btn btn-secondary btn-block">Скинути</a>
+            </div>
+          </form>
+        </aside>
+
+        <!-- Main Content -->
+        <div class="catalog-main">
+          <p class="results-count">Знайдено: {{ disks.paginator.count }} дисків</p>
+
+          <div class="products-grid">
+            {% for disk in disks %}
+              <a href="{% url 'catalog:disk_detail' disk.slug %}" class="product-card-link">
+                <div class="product-card">
+                  <div class="product-image">
+                    {% if disk.image %}
+                      <img src="{{ disk.image.url }}" alt="{{ disk }}" />
+                    {% else %}
+                      <img src="https://picsum.photos/seed/disk{{ disk.id }}/400/400" alt="{{ disk }}" />
+                    {% endif %}
+                  </div>
+                  <h3 class="product-name">{{ disk }}</h3>
+                  <div class="product-price">{{ disk.price|floatformat:0 }} ₴</div>
+                  <div class="product-footer">
+                    {% if disk.in_stock %}
+                      <span class="product-status available">В наявності</span>
+                    {% else %}
+                      <span class="product-status pre-order">Під замовлення</span>
+                    {% endif %}
+                    <button class="cart-add-btn" onclick="addToCart('disk', {{ disk.id }}, event)" title="Додати в кошик">
+                      <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"></path>
+                        <line x1="3" y1="6" x2="21" y2="6"></line>
+                        <path d="M16 10a4 4 0 0 1-8 0"></path>
+                      </svg>
+                    </button>
+                  </div>
+                </div>
+              </a>
+            {% empty %}
+              <div class="empty-results">
+                <p>За вашим запитом дисків не знайдено.</p>
+                <a href="{% url 'catalog:disk_list' %}" class="btn btn-primary">Показати всі диски</a>
+              </div>
+            {% endfor %}
           </div>
-        {% empty %}
-          <p>Дисків поки немає в каталозі</p>
-        {% endfor %}
-      </div>
 
-      <!-- Pagination -->
-      {% if disks.has_other_pages %}
-        <div class="pagination">
-          {% if disks.has_previous %}
-            <a href="?page=1" class="pagination-btn" title="Перша сторінка">
-              <svg class="icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <polyline points="11 17 6 12 11 7"></polyline>
-                <polyline points="18 17 13 12 18 7"></polyline>
-              </svg>
-            </a>
-            <a href="?page={{ disks.previous_page_number }}" class="pagination-btn" title="Попередня">
-              <svg class="icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <polyline points="15 18 9 12 15 6"></polyline>
-              </svg>
-            </a>
-          {% endif %}
+          <!-- Pagination -->
+          {% if disks.has_other_pages %}
+            <div class="pagination">
+              {% if disks.has_previous %}
+                <a href="?{% if current_filters.diameter %}diameter={{ current_filters.diameter }}&{% endif %}{% if current_filters.width %}width={{ current_filters.width }}&{% endif %}{% if current_filters.pcd %}pcd={{ current_filters.pcd }}&{% endif %}{% if current_filters.dia %}dia={{ current_filters.dia }}&{% endif %}{% if current_filters.et %}et={{ current_filters.et }}&{% endif %}{% if current_filters.type %}type={{ current_filters.type }}&{% endif %}{% if current_filters.brand %}brand={{ current_filters.brand }}&{% endif %}page=1" class="pagination-btn" title="Перша сторінка">
+                  <svg class="icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <polyline points="11 17 6 12 11 7"></polyline>
+                    <polyline points="18 17 13 12 18 7"></polyline>
+                  </svg>
+                </a>
+                <a href="?{% if current_filters.diameter %}diameter={{ current_filters.diameter }}&{% endif %}{% if current_filters.width %}width={{ current_filters.width }}&{% endif %}{% if current_filters.pcd %}pcd={{ current_filters.pcd }}&{% endif %}{% if current_filters.dia %}dia={{ current_filters.dia }}&{% endif %}{% if current_filters.et %}et={{ current_filters.et }}&{% endif %}{% if current_filters.type %}type={{ current_filters.type }}&{% endif %}{% if current_filters.brand %}brand={{ current_filters.brand }}&{% endif %}page={{ disks.previous_page_number }}" class="pagination-btn" title="Попередня">
+                  <svg class="icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <polyline points="15 18 9 12 15 6"></polyline>
+                  </svg>
+                </a>
+              {% endif %}
 
-          {% for num in disks.paginator.page_range %}
-            {% if disks.number == num %}
-              <span class="pagination-num active">{{ num }}</span>
-            {% elif num > disks.number|add:'-3' and num < disks.number|add:'3' %}
-              <a href="?page={{ num }}" class="pagination-num">{{ num }}</a>
-            {% elif num == 1 or num == disks.paginator.num_pages %}
-              <a href="?page={{ num }}" class="pagination-num">{{ num }}</a>
-            {% elif num == disks.number|add:'-3' or num == disks.number|add:'3' %}
-              <span class="pagination-dots">...</span>
-            {% endif %}
-          {% endfor %}
+              {% for num in disks.paginator.page_range %}
+                {% if disks.number == num %}
+                  <span class="pagination-num active">{{ num }}</span>
+                {% elif num > disks.number|add:'-3' and num < disks.number|add:'3' %}
+                  <a href="?{% if current_filters.diameter %}diameter={{ current_filters.diameter }}&{% endif %}{% if current_filters.width %}width={{ current_filters.width }}&{% endif %}{% if current_filters.pcd %}pcd={{ current_filters.pcd }}&{% endif %}{% if current_filters.dia %}dia={{ current_filters.dia }}&{% endif %}{% if current_filters.et %}et={{ current_filters.et }}&{% endif %}{% if current_filters.type %}type={{ current_filters.type }}&{% endif %}{% if current_filters.brand %}brand={{ current_filters.brand }}&{% endif %}page={{ num }}" class="pagination-num">{{ num }}</a>
+                {% elif num == 1 or num == disks.paginator.num_pages %}
+                  <a href="?{% if current_filters.diameter %}diameter={{ current_filters.diameter }}&{% endif %}{% if current_filters.width %}width={{ current_filters.width }}&{% endif %}{% if current_filters.pcd %}pcd={{ current_filters.pcd }}&{% endif %}{% if current_filters.dia %}dia={{ current_filters.dia }}&{% endif %}{% if current_filters.et %}et={{ current_filters.et }}&{% endif %}{% if current_filters.type %}type={{ current_filters.type }}&{% endif %}{% if current_filters.brand %}brand={{ current_filters.brand }}&{% endif %}page={{ num }}" class="pagination-num">{{ num }}</a>
+                {% elif num == disks.number|add:'-3' or num == disks.number|add:'3' %}
+                  <span class="pagination-dots">...</span>
+                {% endif %}
+              {% endfor %}
 
-          {% if disks.has_next %}
-            <a href="?page={{ disks.next_page_number }}" class="pagination-btn" title="Наступна">
-              <svg class="icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <polyline points="9 18 15 12 9 6"></polyline>
-              </svg>
-            </a>
-            <a href="?page={{ disks.paginator.num_pages }}" class="pagination-btn" title="Остання сторінка">
-              <svg class="icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <polyline points="13 17 18 12 13 7"></polyline>
-                <polyline points="6 17 11 12 6 7"></polyline>
-              </svg>
-            </a>
+              {% if disks.has_next %}
+                <a href="?{% if current_filters.diameter %}diameter={{ current_filters.diameter }}&{% endif %}{% if current_filters.width %}width={{ current_filters.width }}&{% endif %}{% if current_filters.pcd %}pcd={{ current_filters.pcd }}&{% endif %}{% if current_filters.dia %}dia={{ current_filters.dia }}&{% endif %}{% if current_filters.et %}et={{ current_filters.et }}&{% endif %}{% if current_filters.type %}type={{ current_filters.type }}&{% endif %}{% if current_filters.brand %}brand={{ current_filters.brand }}&{% endif %}page={{ disks.next_page_number }}" class="pagination-btn" title="Наступна">
+                  <svg class="icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <polyline points="9 18 15 12 9 6"></polyline>
+                  </svg>
+                </a>
+                <a href="?{% if current_filters.diameter %}diameter={{ current_filters.diameter }}&{% endif %}{% if current_filters.width %}width={{ current_filters.width }}&{% endif %}{% if current_filters.pcd %}pcd={{ current_filters.pcd }}&{% endif %}{% if current_filters.dia %}dia={{ current_filters.dia }}&{% endif %}{% if current_filters.et %}et={{ current_filters.et }}&{% endif %}{% if current_filters.type %}type={{ current_filters.type }}&{% endif %}{% if current_filters.brand %}brand={{ current_filters.brand }}&{% endif %}page={{ disks.paginator.num_pages }}" class="pagination-btn" title="Остання сторінка">
+                  <svg class="icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <polyline points="13 17 18 12 13 7"></polyline>
+                    <polyline points="6 17 11 12 6 7"></polyline>
+                  </svg>
+                </a>
+              {% endif %}
+            </div>
           {% endif %}
         </div>
-      {% endif %}
+      </div>
     </div>
   </section>
 {% endblock %}
