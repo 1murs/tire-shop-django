@@ -19,4 +19,13 @@ urlpatterns = [
     path("delivery/", views.delivery, name="delivery"),
     path("pre-order/", views.pre_order, name="pre_order"),
     path("contacts/", views.contacts, name="contacts"),
+    path("callback/", views.callback_request, name="callback_request"),
+    path("one-click-order/", views.one_click_order, name="one_click_order"),
+    # Calculators
+    path("calculator/", views.tire_calculator, name="calculator"),
+    path("calculator/by-car/", views.calculator_by_car, name="calculator_by_car"),
+    path("calculator/models/", views.calculator_get_models, name="calculator_models"),
+    path("calculator/years/", views.calculator_get_years, name="calculator_years"),
+    path("calculator/modifications/", views.calculator_get_modifications, name="calculator_modifications"),
+    path("calculator/fitment/", views.calculator_get_fitment, name="calculator_fitment"),
 ]

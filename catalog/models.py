@@ -141,3 +141,43 @@ class Disk(models.Model):
 
     def __str__(self):
         return f"{self.brand.name} {self.model_name} {self.width}x{self.diameter} {self.bolts}x{self.pcd}"
+
+
+class CarFitment(models.Model):
+    """
+    Car fitment data for tire/wheel calculator.
+    Stores OEM and replacement sizes for each car model/year/modification.
+    """
+
+    # Car identification
+    vendor = models.CharField(max_length=100, db_index=True)  # Manufacturer (BMW, Audi, etc.)
+    car = models.CharField(max_length=100, db_index=True)  # Model (X5, A4, etc.)
+    year = models.CharField(max_length=50, db_index=True)  # Year or year range
+    modification = models.CharField(max_length=200)  # Engine/trim variant
+
+    # Wheel specs
+    pcd = models.CharField(max_length=50, blank=True)  # Bolt pattern (5*120)
+    center_bore = models.CharField(max_length=50, blank=True)  # Center bore diameter
+    bolt_type = models.CharField(max_length=100, blank=True)  # Bolt/nut type
+
+    # Tire sizes (separated by | for multiple options, # for front/rear)
+    oem_tires = models.TextField(blank=True)  # Factory tire sizes
+    replacement_tires = models.TextField(blank=True)  # Replacement options
+    tuning_tires = models.TextField(blank=True)  # Tuning/upgrade options
+
+    # Wheel sizes
+    oem_wheels = models.TextField(blank=True)  # Factory wheel sizes
+    replacement_wheels = models.TextField(blank=True)  # Replacement options
+    tuning_wheels = models.TextField(blank=True)  # Tuning/upgrade options
+
+    class Meta:
+        ordering = ["vendor", "car", "year"]
+        verbose_name = "Car Fitment"
+        verbose_name_plural = "Car Fitments"
+        indexes = [
+            models.Index(fields=["vendor", "car"]),
+            models.Index(fields=["vendor", "car", "year"]),
+        ]
+
+    def __str__(self):
+        return f"{self.vendor} {self.car} {self.year} {self.modification}"

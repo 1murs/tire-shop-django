@@ -47,7 +47,7 @@
               </svg>
               Додати в кошик
             </button>
-            <button class="btn btn-secondary btn-lg" onclick="alert('Функція в розробці')">Купити в 1 клік</button>
+            <button class="btn btn-secondary btn-lg" onclick="openOneClickModal('disk', {{ disk.id }}, '{{ disk.brand.name }} {{ disk.model_name }}', '{{ disk.price|floatformat:0 }}')">Купити в 1 клік</button>
           </div>
 
           <div class="product-specs">

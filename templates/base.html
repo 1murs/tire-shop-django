@@ -42,6 +42,7 @@
         <nav class="nav-links">
           <a href="{% url 'catalog:tire_list' %}" class="nav-link">Шини</a>
           <a href="{% url 'catalog:disk_list' %}" class="nav-link">Диски</a>
+          <a href="{% url 'catalog:calculator' %}" class="nav-link nav-link-accent">Калькулятор</a>
           <a href="{% url 'catalog:pre_order' %}" class="nav-link">Попереднє замовлення</a>
           <a href="{% url 'catalog:delivery' %}" class="nav-link">Оплата і доставка</a>
           <a href="{% url 'catalog:contacts' %}" class="nav-link">Контакти</a>
@@ -84,7 +85,7 @@
             <span class="cart-badge" id="cartBadge">0</span>
           </a>
 
-          <button class="callback-btn">
+          <button class="callback-btn" onclick="openCallbackModal()">
             <svg class="icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path>
             </svg>Передзвоніть мені
@@ -124,7 +125,7 @@
               <a href="tel:+380963870223" class="footer-phone">+38 (096) 38-70-223</a>
               <a href="tel:+380508572399" class="footer-phone">+38 (050) 857-23-99</a>
             </div>
-            <button class="callback-btn-footer">
+            <button class="callback-btn-footer" onclick="openCallbackModal()">
               <svg class="icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path>
               </svg>Передзвоніть мені
@@ -142,6 +143,54 @@
         </div>
       </div>
     </footer>
+
+    <!-- One Click Buy Modal -->
+    <div class="modal-overlay" id="oneClickModal">
+      <div class="modal">
+        <div class="modal-header">
+          <h3 class="modal-title">Купити в 1 клік</h3>
+          <button class="modal-close" onclick="closeOneClickModal()">&times;</button>
+        </div>
+        <div class="modal-product-info" id="oneClickProductInfo">
+          <!-- Product info will be inserted here -->
+        </div>
+        <form id="oneClickForm" class="modal-form">
+          <input type="hidden" id="oneClickType" name="type">
+          <input type="hidden" id="oneClickProductId" name="product_id">
+          <div class="form-group">
+            <label for="oneClickPhone">Телефон <span class="required">*</span></label>
+            <input type="tel" id="oneClickPhone" name="phone" required placeholder="+38 (___) ___-__-__">
+          </div>
+          <p class="modal-hint">Введіть номер телефону і ми зателефонуємо вам для підтвердження замовлення</p>
+          <button type="submit" class="modal-submit">Замовити</button>
+        </form>
+      </div>
+    </div>
+
+    <!-- Callback Modal -->
+    <div class="modal-overlay" id="callbackModal">
+      <div class="modal">
+        <div class="modal-header">
+          <h3 class="modal-title">Замовити дзвінок</h3>
+          <button class="modal-close" onclick="closeCallbackModal()">&times;</button>
+        </div>
+        <form id="callbackForm" class="modal-form">
+          <div class="form-group">
+            <label for="callbackName">Ім'я <span class="required">*</span></label>
+            <input type="text" id="callbackName" name="name" required placeholder="Введіть ваше ім'я">
+          </div>
+          <div class="form-group">
+            <label for="callbackPhone">Телефон <span class="required">*</span></label>
+            <input type="tel" id="callbackPhone" name="phone" required placeholder="+38 (___) ___-__-__">
+          </div>
+          <div class="form-group">
+            <label for="callbackQuestion">Питання</label>
+            <textarea id="callbackQuestion" name="question" rows="3" placeholder="Опишіть ваше питання (необов'язково)"></textarea>
+          </div>
+          <button type="submit" class="modal-submit">Надіслати</button>
+        </form>
+      </div>
+    </div>
 
     <!-- Toast notification -->
     <div class="toast" id="toast"></div>
@@ -226,6 +275,151 @@
         fetch('{% url "catalog:cart_count" %}')
           .then(r => r.json())
           .then(data => updateCartBadge(data.count));
+      });
+
+      // One Click Buy Modal functions
+      function openOneClickModal(type, productId, productName, productPrice) {
+        document.getElementById('oneClickType').value = type;
+        document.getElementById('oneClickProductId').value = productId;
+        document.getElementById('oneClickProductInfo').innerHTML = `
+          <div class="modal-product-name">${productName}</div>
+          <div class="modal-product-price">${productPrice} ₴</div>
+        `;
+        document.getElementById('oneClickModal').classList.add('active');
+        document.body.style.overflow = 'hidden';
+        document.getElementById('oneClickPhone').focus();
+      }
+
+      function closeOneClickModal() {
+        document.getElementById('oneClickModal').classList.remove('active');
+        document.body.style.overflow = '';
+        document.getElementById('oneClickForm').reset();
+      }
+
+      // Close one click modal on overlay click
+      document.getElementById('oneClickModal').addEventListener('click', function(e) {
+        if (e.target === this) {
+          closeOneClickModal();
+        }
+      });
+
+      // Handle one click form submission
+      document.getElementById('oneClickForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+
+        const type = document.getElementById('oneClickType').value;
+        const productId = document.getElementById('oneClickProductId').value;
+        const phone = document.getElementById('oneClickPhone').value.trim();
+
+        if (!phone) {
+          showToast('Введіть номер телефону', 'error');
+          return;
+        }
+
+        const submitBtn = this.querySelector('.modal-submit');
+        submitBtn.disabled = true;
+        submitBtn.textContent = 'Оформлюємо...';
+
+        fetch('{% url "catalog:one_click_order" %}', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': '{{ csrf_token }}'
+          },
+          body: JSON.stringify({ type: type, product_id: productId, phone: phone })
+        })
+        .then(r => r.json())
+        .then(data => {
+          if (data.success) {
+            showToast(data.message, 'success');
+            closeOneClickModal();
+          } else {
+            showToast(data.error || 'Помилка оформлення', 'error');
+          }
+        })
+        .catch(err => {
+          showToast('Помилка з\'єднання', 'error');
+        })
+        .finally(() => {
+          submitBtn.disabled = false;
+          submitBtn.textContent = 'Замовити';
+        });
+      });
+
+      // Callback Modal functions
+      function openCallbackModal() {
+        document.getElementById('callbackModal').classList.add('active');
+        document.body.style.overflow = 'hidden';
+      }
+
+      function closeCallbackModal() {
+        document.getElementById('callbackModal').classList.remove('active');
+        document.body.style.overflow = '';
+        document.getElementById('callbackForm').reset();
+      }
+
+      // Close modal on overlay click
+      document.getElementById('callbackModal').addEventListener('click', function(e) {
+        if (e.target === this) {
+          closeCallbackModal();
+        }
+      });
+
+      // Close modals on Escape key
+      document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') {
+          const callbackModal = document.getElementById('callbackModal');
+          const oneClickModal = document.getElementById('oneClickModal');
+          if (callbackModal.classList.contains('active')) {
+            closeCallbackModal();
+          }
+          if (oneClickModal.classList.contains('active')) {
+            closeOneClickModal();
+          }
+        }
+      });
+
+      // Handle callback form submission
+      document.getElementById('callbackForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+
+        const name = document.getElementById('callbackName').value.trim();
+        const phone = document.getElementById('callbackPhone').value.trim();
+        const question = document.getElementById('callbackQuestion').value.trim();
+
+        if (!name || !phone) {
+          showToast('Заповніть обов\'язкові поля', 'error');
+          return;
+        }
+
+        const submitBtn = this.querySelector('.modal-submit');
+        submitBtn.disabled = true;
+        submitBtn.textContent = 'Надсилаємо...';
+
+        fetch('{% url "catalog:callback_request" %}', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': '{{ csrf_token }}'
+          },
+          body: JSON.stringify({ name: name, phone: phone, question: question })
+        })
+        .then(r => r.json())
+        .then(data => {
+          if (data.success) {
+            showToast(data.message, 'success');
+            closeCallbackModal();
+          } else {
+            showToast(data.error || 'Помилка відправки', 'error');
+          }
+        })
+        .catch(err => {
+          showToast('Помилка з\'єднання', 'error');
+        })
+        .finally(() => {
+          submitBtn.disabled = false;
+          submitBtn.textContent = 'Надіслати';
+        });
       });
     </script>
   </body>

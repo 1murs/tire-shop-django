@@ -1,0 +1,318 @@
+{% extends 'base.html' %}
+
+{% block title %}
+  Підбір шин та дисків по авто - КМ/Ч 120
+{% endblock %}
+
+{% block content %}
+<section class="section calculator-section">
+  <div class="container">
+    <h1 class="page-title">Підбір шин та дисків по авто</h1>
+    <p class="page-subtitle">Оберіть ваш автомобіль для підбору оптимальних розмірів шин та дисків</p>
+
+    <div class="calculator-wrapper">
+      <!-- Selection Form -->
+      <div class="calculator-form">
+        <div class="calculator-selects">
+          <div class="form-group">
+            <label for="vendorSelect">Виробник</label>
+            <select id="vendorSelect" class="calc-select">
+              <option value="">Оберіть виробника</option>
+              {% for vendor in vendors %}
+                <option value="{{ vendor }}">{{ vendor }}</option>
+              {% endfor %}
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label for="modelSelect">Модель</label>
+            <select id="modelSelect" class="calc-select" disabled>
+              <option value="">Спочатку оберіть виробника</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label for="yearSelect">Рік випуску</label>
+            <select id="yearSelect" class="calc-select" disabled>
+              <option value="">Спочатку оберіть модель</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label for="modificationSelect">Модифікація</label>
+            <select id="modificationSelect" class="calc-select" disabled>
+              <option value="">Спочатку оберіть рік</option>
+            </select>
+          </div>
+        </div>
+
+        <button type="button" class="btn btn-primary btn-lg calc-submit" id="calcSubmit" disabled>
+          <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="11" cy="11" r="8"></circle>
+            <path d="m21 21-4.35-4.35"></path>
+          </svg>
+          Підібрати
+        </button>
+      </div>
+
+      <!-- Results -->
+      <div class="calculator-results" id="calcResults" style="display: none;">
+        <div class="results-header">
+          <h2 id="carTitle">-</h2>
+          <div class="car-specs" id="carSpecs"></div>
+        </div>
+
+        <div class="results-grid">
+          <!-- Tires Section -->
+          <div class="results-card">
+            <div class="results-card-header">
+              <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="12" cy="12" r="10"></circle>
+                <circle cx="12" cy="12" r="6"></circle>
+                <circle cx="12" cy="12" r="2"></circle>
+              </svg>
+              <h3>Шини</h3>
+            </div>
+
+            <div class="size-section" id="tiresOem">
+              <h4>Заводська комплектація</h4>
+              <div class="size-list"></div>
+            </div>
+
+            <div class="size-section" id="tiresReplacement">
+              <h4>Варіанти заміни</h4>
+              <div class="size-list"></div>
+            </div>
+
+            <div class="size-section" id="tiresTuning">
+              <h4>Тюнінг</h4>
+              <div class="size-list"></div>
+            </div>
+          </div>
+
+          <!-- Wheels Section -->
+          <div class="results-card">
+            <div class="results-card-header">
+              <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="12" cy="12" r="10"></circle>
+                <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
+              </svg>
+              <h3>Диски</h3>
+            </div>
+
+            <div class="size-section" id="wheelsOem">
+              <h4>Заводська комплектація</h4>
+              <div class="size-list"></div>
+            </div>
+
+            <div class="size-section" id="wheelsReplacement">
+              <h4>Варіанти заміни</h4>
+              <div class="size-list"></div>
+            </div>
+
+            <div class="size-section" id="wheelsTuning">
+              <h4>Тюнінг</h4>
+              <div class="size-list"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Loading State -->
+      <div class="calculator-loading" id="calcLoading" style="display: none;">
+        <div class="loading-spinner"></div>
+        <p>Завантаження даних...</p>
+      </div>
+    </div>
+
+    <!-- Link to tire calculator -->
+    <div class="fitment-link-section">
+      <h3>Порівняння розмірів шин</h3>
+      <p>Хочете порівняти два розміри шин та дізнатись вплив на спідометр?</p>
+      <a href="{% url 'catalog:calculator' %}" class="btn btn-secondary">
+        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="12" cy="12" r="10"></circle>
+          <circle cx="12" cy="12" r="6"></circle>
+          <circle cx="12" cy="12" r="2"></circle>
+        </svg>
+        Шинний калькулятор
+      </a>
+    </div>
+  </div>
+</section>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  const vendorSelect = document.getElementById('vendorSelect');
+  const modelSelect = document.getElementById('modelSelect');
+  const yearSelect = document.getElementById('yearSelect');
+  const modificationSelect = document.getElementById('modificationSelect');
+  const calcSubmit = document.getElementById('calcSubmit');
+  const calcResults = document.getElementById('calcResults');
+  const calcLoading = document.getElementById('calcLoading');
+
+  // Vendor change
+  vendorSelect.addEventListener('change', function() {
+    const vendor = this.value;
+
+    modelSelect.innerHTML = '<option value="">Завантаження...</option>';
+    modelSelect.disabled = true;
+    yearSelect.innerHTML = '<option value="">Спочатку оберіть модель</option>';
+    yearSelect.disabled = true;
+    modificationSelect.innerHTML = '<option value="">Спочатку оберіть рік</option>';
+    modificationSelect.disabled = true;
+    calcSubmit.disabled = true;
+    calcResults.style.display = 'none';
+
+    if (!vendor) {
+      modelSelect.innerHTML = '<option value="">Спочатку оберіть виробника</option>';
+      return;
+    }
+
+    fetch(`{% url 'catalog:calculator_models' %}?vendor=${encodeURIComponent(vendor)}`)
+      .then(r => r.json())
+      .then(data => {
+        modelSelect.innerHTML = '<option value="">Оберіть модель</option>';
+        data.models.forEach(model => {
+          modelSelect.innerHTML += `<option value="${model}">${model}</option>`;
+        });
+        modelSelect.disabled = false;
+      });
+  });
+
+  // Model change
+  modelSelect.addEventListener('change', function() {
+    const vendor = vendorSelect.value;
+    const car = this.value;
+
+    yearSelect.innerHTML = '<option value="">Завантаження...</option>';
+    yearSelect.disabled = true;
+    modificationSelect.innerHTML = '<option value="">Спочатку оберіть рік</option>';
+    modificationSelect.disabled = true;
+    calcSubmit.disabled = true;
+    calcResults.style.display = 'none';
+
+    if (!car) {
+      yearSelect.innerHTML = '<option value="">Спочатку оберіть модель</option>';
+      return;
+    }
+
+    fetch(`{% url 'catalog:calculator_years' %}?vendor=${encodeURIComponent(vendor)}&car=${encodeURIComponent(car)}`)
+      .then(r => r.json())
+      .then(data => {
+        yearSelect.innerHTML = '<option value="">Оберіть рік</option>';
+        data.years.forEach(year => {
+          yearSelect.innerHTML += `<option value="${year}">${year}</option>`;
+        });
+        yearSelect.disabled = false;
+      });
+  });
+
+  // Year change
+  yearSelect.addEventListener('change', function() {
+    const vendor = vendorSelect.value;
+    const car = modelSelect.value;
+    const year = this.value;
+
+    modificationSelect.innerHTML = '<option value="">Завантаження...</option>';
+    modificationSelect.disabled = true;
+    calcSubmit.disabled = true;
+    calcResults.style.display = 'none';
+
+    if (!year) {
+      modificationSelect.innerHTML = '<option value="">Спочатку оберіть рік</option>';
+      return;
+    }
+
+    fetch(`{% url 'catalog:calculator_modifications' %}?vendor=${encodeURIComponent(vendor)}&car=${encodeURIComponent(car)}&year=${encodeURIComponent(year)}`)
+      .then(r => r.json())
+      .then(data => {
+        modificationSelect.innerHTML = '<option value="">Оберіть модифікацію</option>';
+        data.modifications.forEach(mod => {
+          modificationSelect.innerHTML += `<option value="${mod.id}">${mod.modification}</option>`;
+        });
+        modificationSelect.disabled = false;
+      });
+  });
+
+  // Modification change
+  modificationSelect.addEventListener('change', function() {
+    calcSubmit.disabled = !this.value;
+    calcResults.style.display = 'none';
+  });
+
+  // Submit
+  calcSubmit.addEventListener('click', function() {
+    const fitmentId = modificationSelect.value;
+    if (!fitmentId) return;
+
+    calcLoading.style.display = 'flex';
+    calcResults.style.display = 'none';
+
+    fetch(`{% url 'catalog:calculator_fitment' %}?id=${fitmentId}`)
+      .then(r => r.json())
+      .then(data => {
+        calcLoading.style.display = 'none';
+        displayResults(data);
+      })
+      .catch(err => {
+        calcLoading.style.display = 'none';
+        alert('Помилка завантаження даних');
+      });
+  });
+
+  function displayResults(data) {
+    document.getElementById('carTitle').textContent = data.car;
+
+    let specsHtml = '';
+    if (data.pcd) specsHtml += `<span class="spec-badge">PCD: ${data.pcd}</span>`;
+    if (data.center_bore) specsHtml += `<span class="spec-badge">DIA: ${data.center_bore}</span>`;
+    if (data.bolt_type) specsHtml += `<span class="spec-badge">${data.bolt_type}</span>`;
+    document.getElementById('carSpecs').innerHTML = specsHtml;
+
+    displaySizes('tiresOem', data.tires.oem);
+    displaySizes('tiresReplacement', data.tires.replacement);
+    displaySizes('tiresTuning', data.tires.tuning);
+
+    displaySizes('wheelsOem', data.wheels.oem);
+    displaySizes('wheelsReplacement', data.wheels.replacement);
+    displaySizes('wheelsTuning', data.wheels.tuning);
+
+    calcResults.style.display = 'block';
+    calcResults.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+
+  function displaySizes(containerId, sizes) {
+    const container = document.getElementById(containerId);
+    const list = container.querySelector('.size-list');
+
+    if (!sizes || sizes.length === 0) {
+      container.style.display = 'none';
+      return;
+    }
+
+    container.style.display = 'block';
+    list.innerHTML = '';
+
+    sizes.forEach(size => {
+      if (size.staggered) {
+        list.innerHTML += `
+          <div class="size-item staggered">
+            <span class="size-label">Перед:</span>
+            <span class="size-value">${size.front}</span>
+            <span class="size-label">Зад:</span>
+            <span class="size-value">${size.rear}</span>
+          </div>
+        `;
+      } else {
+        list.innerHTML += `
+          <div class="size-item">
+            <span class="size-value">${size.size}</span>
+          </div>
+        `;
+      }
+    });
+  }
+});
+</script>
+{% endblock %}

@@ -1,0 +1,531 @@
+{% extends 'base.html' %}
+
+{% block title %}
+  Шинний калькулятор - КМ/Ч 120
+{% endblock %}
+
+{% block content %}
+<section class="section calculator-section">
+  <div class="container">
+    <h1 class="page-title">Шинний калькулятор</h1>
+    <p class="page-subtitle">Порівняйте розміри шин та дисків, розрахуйте вплив на спідометр</p>
+
+    <div class="tire-calculator">
+      <!-- Input Section -->
+      <div class="calc-inputs-wrapper">
+        <!-- Tire 1 -->
+        <div class="calc-input-card">
+          <div class="calc-card-header tire1-header">
+            <span class="calc-card-number">1</span>
+            <h3>Поточний розмір</h3>
+          </div>
+          <div class="calc-card-body">
+            <div class="tire-size-display" id="tire1Display">215/55 R16</div>
+
+            <div class="tire-inputs">
+              <div class="input-group">
+                <label>Ширина (мм)</label>
+                <select id="width1" class="tire-select">
+                  <option value="125">125</option>
+                  <option value="135">135</option>
+                  <option value="145">145</option>
+                  <option value="155">155</option>
+                  <option value="165">165</option>
+                  <option value="175">175</option>
+                  <option value="185">185</option>
+                  <option value="195">195</option>
+                  <option value="205">205</option>
+                  <option value="215" selected>215</option>
+                  <option value="225">225</option>
+                  <option value="235">235</option>
+                  <option value="245">245</option>
+                  <option value="255">255</option>
+                  <option value="265">265</option>
+                  <option value="275">275</option>
+                  <option value="285">285</option>
+                  <option value="295">295</option>
+                  <option value="305">305</option>
+                  <option value="315">315</option>
+                  <option value="325">325</option>
+                  <option value="335">335</option>
+                </select>
+              </div>
+
+              <div class="input-group">
+                <label>Профіль (%)</label>
+                <select id="profile1" class="tire-select">
+                  <option value="25">25</option>
+                  <option value="30">30</option>
+                  <option value="35">35</option>
+                  <option value="40">40</option>
+                  <option value="45">45</option>
+                  <option value="50">50</option>
+                  <option value="55" selected>55</option>
+                  <option value="60">60</option>
+                  <option value="65">65</option>
+                  <option value="70">70</option>
+                  <option value="75">75</option>
+                  <option value="80">80</option>
+                  <option value="85">85</option>
+                </select>
+              </div>
+
+              <div class="input-group">
+                <label>Діаметр (R)</label>
+                <select id="diameter1" class="tire-select">
+                  <option value="13">R13</option>
+                  <option value="14">R14</option>
+                  <option value="15">R15</option>
+                  <option value="16" selected>R16</option>
+                  <option value="17">R17</option>
+                  <option value="18">R18</option>
+                  <option value="19">R19</option>
+                  <option value="20">R20</option>
+                  <option value="21">R21</option>
+                  <option value="22">R22</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="disk-inputs">
+              <h4>Параметри диска</h4>
+              <div class="disk-inputs-row">
+                <div class="input-group">
+                  <label>Ширина (")</label>
+                  <select id="diskWidth1" class="tire-select">
+                    <option value="5">5</option>
+                    <option value="5.5">5.5</option>
+                    <option value="6">6</option>
+                    <option value="6.5">6.5</option>
+                    <option value="7" selected>7</option>
+                    <option value="7.5">7.5</option>
+                    <option value="8">8</option>
+                    <option value="8.5">8.5</option>
+                    <option value="9">9</option>
+                    <option value="9.5">9.5</option>
+                    <option value="10">10</option>
+                    <option value="10.5">10.5</option>
+                    <option value="11">11</option>
+                    <option value="12">12</option>
+                  </select>
+                </div>
+                <div class="input-group">
+                  <label>Виліт ET</label>
+                  <input type="number" id="et1" class="tire-input" value="35" min="-50" max="60">
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Tire 2 -->
+        <div class="calc-input-card">
+          <div class="calc-card-header tire2-header">
+            <span class="calc-card-number">2</span>
+            <h3>Новий розмір</h3>
+          </div>
+          <div class="calc-card-body">
+            <div class="tire-size-display tire2-display" id="tire2Display">225/45 R17</div>
+
+            <div class="tire-inputs">
+              <div class="input-group">
+                <label>Ширина (мм)</label>
+                <select id="width2" class="tire-select">
+                  <option value="125">125</option>
+                  <option value="135">135</option>
+                  <option value="145">145</option>
+                  <option value="155">155</option>
+                  <option value="165">165</option>
+                  <option value="175">175</option>
+                  <option value="185">185</option>
+                  <option value="195">195</option>
+                  <option value="205">205</option>
+                  <option value="215">215</option>
+                  <option value="225" selected>225</option>
+                  <option value="235">235</option>
+                  <option value="245">245</option>
+                  <option value="255">255</option>
+                  <option value="265">265</option>
+                  <option value="275">275</option>
+                  <option value="285">285</option>
+                  <option value="295">295</option>
+                  <option value="305">305</option>
+                  <option value="315">315</option>
+                  <option value="325">325</option>
+                  <option value="335">335</option>
+                </select>
+              </div>
+
+              <div class="input-group">
+                <label>Профіль (%)</label>
+                <select id="profile2" class="tire-select">
+                  <option value="25">25</option>
+                  <option value="30">30</option>
+                  <option value="35">35</option>
+                  <option value="40">40</option>
+                  <option value="45" selected>45</option>
+                  <option value="50">50</option>
+                  <option value="55">55</option>
+                  <option value="60">60</option>
+                  <option value="65">65</option>
+                  <option value="70">70</option>
+                  <option value="75">75</option>
+                  <option value="80">80</option>
+                  <option value="85">85</option>
+                </select>
+              </div>
+
+              <div class="input-group">
+                <label>Діаметр (R)</label>
+                <select id="diameter2" class="tire-select">
+                  <option value="13">R13</option>
+                  <option value="14">R14</option>
+                  <option value="15">R15</option>
+                  <option value="16">R16</option>
+                  <option value="17" selected>R17</option>
+                  <option value="18">R18</option>
+                  <option value="19">R19</option>
+                  <option value="20">R20</option>
+                  <option value="21">R21</option>
+                  <option value="22">R22</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="disk-inputs">
+              <h4>Параметри диска</h4>
+              <div class="disk-inputs-row">
+                <div class="input-group">
+                  <label>Ширина (")</label>
+                  <select id="diskWidth2" class="tire-select">
+                    <option value="5">5</option>
+                    <option value="5.5">5.5</option>
+                    <option value="6">6</option>
+                    <option value="6.5">6.5</option>
+                    <option value="7">7</option>
+                    <option value="7.5" selected>7.5</option>
+                    <option value="8">8</option>
+                    <option value="8.5">8.5</option>
+                    <option value="9">9</option>
+                    <option value="9.5">9.5</option>
+                    <option value="10">10</option>
+                    <option value="10.5">10.5</option>
+                    <option value="11">11</option>
+                    <option value="12">12</option>
+                  </select>
+                </div>
+                <div class="input-group">
+                  <label>Виліт ET</label>
+                  <input type="number" id="et2" class="tire-input" value="40" min="-50" max="60">
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Results Section -->
+      <div class="calc-results">
+        <h2 class="results-title">Результати порівняння</h2>
+
+        <!-- Visual Comparison -->
+        <div class="tire-visual-compare">
+          <div class="tire-visual" id="tireVisual1">
+            <div class="tire-circle" id="tireCircle1"></div>
+            <div class="tire-visual-label">Шина 1</div>
+          </div>
+          <div class="tire-visual-vs">VS</div>
+          <div class="tire-visual" id="tireVisual2">
+            <div class="tire-circle tire2-circle" id="tireCircle2"></div>
+            <div class="tire-visual-label">Шина 2</div>
+          </div>
+        </div>
+
+        <!-- Comparison Table -->
+        <div class="comparison-table">
+          <div class="comparison-row comparison-header">
+            <div class="comparison-cell">Параметр</div>
+            <div class="comparison-cell tire1-cell">Шина 1</div>
+            <div class="comparison-cell tire2-cell">Шина 2</div>
+            <div class="comparison-cell diff-cell">Різниця</div>
+          </div>
+
+          <div class="comparison-row">
+            <div class="comparison-cell param-cell">Ширина шини</div>
+            <div class="comparison-cell" id="resWidth1">215 мм</div>
+            <div class="comparison-cell" id="resWidth2">225 мм</div>
+            <div class="comparison-cell diff-cell" id="resDiffWidth">+10 мм</div>
+          </div>
+
+          <div class="comparison-row">
+            <div class="comparison-cell param-cell">Висота профілю</div>
+            <div class="comparison-cell" id="resHeight1">118.3 мм</div>
+            <div class="comparison-cell" id="resHeight2">101.3 мм</div>
+            <div class="comparison-cell diff-cell" id="resDiffHeight">-17 мм</div>
+          </div>
+
+          <div class="comparison-row">
+            <div class="comparison-cell param-cell">Діаметр колеса</div>
+            <div class="comparison-cell" id="resDiameter1">643 мм</div>
+            <div class="comparison-cell" id="resDiameter2">634 мм</div>
+            <div class="comparison-cell diff-cell" id="resDiffDiameter">-9 мм</div>
+          </div>
+
+          <div class="comparison-row">
+            <div class="comparison-cell param-cell">Довжина окружності</div>
+            <div class="comparison-cell" id="resCircum1">2020 мм</div>
+            <div class="comparison-cell" id="resCircum2">1992 мм</div>
+            <div class="comparison-cell diff-cell" id="resDiffCircum">-28 мм</div>
+          </div>
+
+          <div class="comparison-row">
+            <div class="comparison-cell param-cell">Обертів на км</div>
+            <div class="comparison-cell" id="resRevs1">495</div>
+            <div class="comparison-cell" id="resRevs2">502</div>
+            <div class="comparison-cell diff-cell" id="resDiffRevs">+7</div>
+          </div>
+
+          <div class="comparison-row">
+            <div class="comparison-cell param-cell">Кліренс (зміна)</div>
+            <div class="comparison-cell" id="resClearance1">0 мм</div>
+            <div class="comparison-cell" id="resClearance2">-4.5 мм</div>
+            <div class="comparison-cell diff-cell" id="resDiffClearance">-4.5 мм</div>
+          </div>
+        </div>
+
+        <!-- Speedometer -->
+        <div class="speedometer-section">
+          <h3>Вплив на спідометр</h3>
+          <div class="speedometer-grid">
+            <div class="speedometer-card">
+              <div class="speedometer-label">Показання спідометра</div>
+              <div class="speedometer-value">100 <span>км/год</span></div>
+            </div>
+            <div class="speedometer-card speedometer-real">
+              <div class="speedometer-label">Реальна швидкість</div>
+              <div class="speedometer-value" id="realSpeed">98.6 <span>км/год</span></div>
+            </div>
+            <div class="speedometer-card speedometer-diff">
+              <div class="speedometer-label">Похибка</div>
+              <div class="speedometer-value" id="speedError">-1.4<span>%</span></div>
+            </div>
+          </div>
+          <p class="speedometer-note" id="speedometerNote">
+            При встановленні нових шин спідометр буде показувати більше, ніж реальна швидкість
+          </p>
+        </div>
+
+        <!-- Alternative Sizes -->
+        <div class="alternatives-section">
+          <h3>Альтернативні розміри для заміни</h3>
+          <p class="alternatives-note">Розміри з різницею діаметра до 3%</p>
+          <div class="alternatives-table" id="alternativesTable">
+            <!-- Will be filled by JS -->
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Car Fitment Link -->
+    <div class="fitment-link-section">
+      <h3>Підбір по автомобілю</h3>
+      <p>Не знаєте який розмір вам потрібен? Скористайтесь підбором по марці авто</p>
+      <a href="{% url 'catalog:calculator_by_car' %}" class="btn btn-secondary">
+        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <rect x="1" y="3" width="15" height="13"></rect>
+          <polygon points="16 8 20 8 23 11 23 16 16 16 16 8"></polygon>
+          <circle cx="5.5" cy="18.5" r="2.5"></circle>
+          <circle cx="18.5" cy="18.5" r="2.5"></circle>
+        </svg>
+        Підбір по авто
+      </a>
+    </div>
+  </div>
+</section>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  // Get all input elements
+  const inputs = {
+    width1: document.getElementById('width1'),
+    profile1: document.getElementById('profile1'),
+    diameter1: document.getElementById('diameter1'),
+    diskWidth1: document.getElementById('diskWidth1'),
+    et1: document.getElementById('et1'),
+    width2: document.getElementById('width2'),
+    profile2: document.getElementById('profile2'),
+    diameter2: document.getElementById('diameter2'),
+    diskWidth2: document.getElementById('diskWidth2'),
+    et2: document.getElementById('et2')
+  };
+
+  // Add event listeners to all inputs
+  Object.values(inputs).forEach(input => {
+    input.addEventListener('change', calculate);
+    input.addEventListener('input', calculate);
+  });
+
+  function calculate() {
+    // Get values
+    const w1 = parseFloat(inputs.width1.value);
+    const p1 = parseFloat(inputs.profile1.value);
+    const d1 = parseFloat(inputs.diameter1.value);
+    const dw1 = parseFloat(inputs.diskWidth1.value);
+    const et1 = parseFloat(inputs.et1.value);
+
+    const w2 = parseFloat(inputs.width2.value);
+    const p2 = parseFloat(inputs.profile2.value);
+    const d2 = parseFloat(inputs.diameter2.value);
+    const dw2 = parseFloat(inputs.diskWidth2.value);
+    const et2 = parseFloat(inputs.et2.value);
+
+    // Calculate tire parameters
+    // Profile height in mm
+    const h1 = w1 * p1 / 100;
+    const h2 = w2 * p2 / 100;
+
+    // Overall diameter in mm (rim diameter in inches * 25.4 + 2 * profile height)
+    const od1 = d1 * 25.4 + 2 * h1;
+    const od2 = d2 * 25.4 + 2 * h2;
+
+    // Circumference in mm
+    const c1 = Math.PI * od1;
+    const c2 = Math.PI * od2;
+
+    // Revolutions per km
+    const r1 = 1000000 / c1;
+    const r2 = 1000000 / c2;
+
+    // Clearance change (half the diameter difference)
+    const clearance = (od2 - od1) / 2;
+
+    // Speedometer error
+    const speedError = ((od2 / od1) - 1) * 100;
+    const realSpeed = 100 * (od2 / od1);
+
+    // Update displays
+    document.getElementById('tire1Display').textContent = `${w1}/${p1} R${d1}`;
+    document.getElementById('tire2Display').textContent = `${w2}/${p2} R${d2}`;
+
+    // Update comparison table
+    document.getElementById('resWidth1').textContent = `${w1} мм`;
+    document.getElementById('resWidth2').textContent = `${w2} мм`;
+    document.getElementById('resDiffWidth').textContent = formatDiff(w2 - w1, 'мм');
+    document.getElementById('resDiffWidth').className = 'comparison-cell diff-cell ' + getDiffClass(w2 - w1);
+
+    document.getElementById('resHeight1').textContent = `${h1.toFixed(1)} мм`;
+    document.getElementById('resHeight2').textContent = `${h2.toFixed(1)} мм`;
+    document.getElementById('resDiffHeight').textContent = formatDiff(h2 - h1, 'мм');
+    document.getElementById('resDiffHeight').className = 'comparison-cell diff-cell ' + getDiffClass(h2 - h1);
+
+    document.getElementById('resDiameter1').textContent = `${od1.toFixed(1)} мм`;
+    document.getElementById('resDiameter2').textContent = `${od2.toFixed(1)} мм`;
+    document.getElementById('resDiffDiameter').textContent = formatDiff(od2 - od1, 'мм');
+    document.getElementById('resDiffDiameter').className = 'comparison-cell diff-cell ' + getDiffClass(od2 - od1);
+
+    document.getElementById('resCircum1').textContent = `${c1.toFixed(0)} мм`;
+    document.getElementById('resCircum2').textContent = `${c2.toFixed(0)} мм`;
+    document.getElementById('resDiffCircum').textContent = formatDiff(c2 - c1, 'мм');
+    document.getElementById('resDiffCircum').className = 'comparison-cell diff-cell ' + getDiffClass(c2 - c1);
+
+    document.getElementById('resRevs1').textContent = r1.toFixed(1);
+    document.getElementById('resRevs2').textContent = r2.toFixed(1);
+    document.getElementById('resDiffRevs').textContent = formatDiff(r2 - r1, '');
+    document.getElementById('resDiffRevs').className = 'comparison-cell diff-cell ' + getDiffClass(r2 - r1);
+
+    document.getElementById('resClearance1').textContent = '0 мм';
+    document.getElementById('resClearance2').textContent = `${clearance >= 0 ? '+' : ''}${clearance.toFixed(1)} мм`;
+    document.getElementById('resDiffClearance').textContent = `${clearance >= 0 ? '+' : ''}${clearance.toFixed(1)} мм`;
+    document.getElementById('resDiffClearance').className = 'comparison-cell diff-cell ' + getDiffClass(clearance);
+
+    // Speedometer
+    document.getElementById('realSpeed').innerHTML = `${realSpeed.toFixed(1)} <span>км/год</span>`;
+    document.getElementById('speedError').innerHTML = `${speedError >= 0 ? '+' : ''}${speedError.toFixed(1)}<span>%</span>`;
+    document.getElementById('speedError').parentElement.className = 'speedometer-card speedometer-diff ' + (Math.abs(speedError) > 3 ? 'error-high' : '');
+
+    const noteEl = document.getElementById('speedometerNote');
+    if (speedError > 0.1) {
+      noteEl.textContent = 'Спідометр буде показувати менше, ніж реальна швидкість (небезпечно!)';
+      noteEl.className = 'speedometer-note warning';
+    } else if (speedError < -0.1) {
+      noteEl.textContent = 'Спідометр буде показувати більше, ніж реальна швидкість';
+      noteEl.className = 'speedometer-note';
+    } else {
+      noteEl.textContent = 'Різниця в показаннях спідометра незначна';
+      noteEl.className = 'speedometer-note success';
+    }
+
+    // Update visual comparison
+    const maxSize = 150;
+    const scale = maxSize / Math.max(od1, od2);
+    document.getElementById('tireCircle1').style.width = (od1 * scale) + 'px';
+    document.getElementById('tireCircle1').style.height = (od1 * scale) + 'px';
+    document.getElementById('tireCircle2').style.width = (od2 * scale) + 'px';
+    document.getElementById('tireCircle2').style.height = (od2 * scale) + 'px';
+
+    // Generate alternatives table
+    generateAlternatives(w1, p1, d1, od1);
+  }
+
+  function formatDiff(diff, unit) {
+    const sign = diff >= 0 ? '+' : '';
+    return `${sign}${diff.toFixed(1)} ${unit}`;
+  }
+
+  function getDiffClass(diff) {
+    if (Math.abs(diff) < 0.1) return 'diff-neutral';
+    return diff > 0 ? 'diff-positive' : 'diff-negative';
+  }
+
+  function generateAlternatives(baseWidth, baseProfile, baseDiameter, baseOD) {
+    const container = document.getElementById('alternativesTable');
+    const widths = [175, 185, 195, 205, 215, 225, 235, 245, 255, 265, 275];
+    const profiles = [30, 35, 40, 45, 50, 55, 60, 65, 70];
+    const diameters = [14, 15, 16, 17, 18, 19, 20];
+
+    let html = '<div class="alt-grid">';
+
+    diameters.forEach(d => {
+      let sizesForDiameter = [];
+
+      widths.forEach(w => {
+        profiles.forEach(p => {
+          const h = w * p / 100;
+          const od = d * 25.4 + 2 * h;
+          const diff = ((od / baseOD) - 1) * 100;
+
+          if (Math.abs(diff) <= 3 && !(w === baseWidth && p === baseProfile && d === baseDiameter)) {
+            sizesForDiameter.push({
+              size: `${w}/${p} R${d}`,
+              diff: diff
+            });
+          }
+        });
+      });
+
+      if (sizesForDiameter.length > 0) {
+        html += `<div class="alt-diameter-group">
+          <div class="alt-diameter-header">R${d}</div>
+          <div class="alt-sizes">`;
+
+        sizesForDiameter.slice(0, 6).forEach(s => {
+          const diffClass = Math.abs(s.diff) < 1 ? 'alt-best' : (Math.abs(s.diff) < 2 ? 'alt-good' : 'alt-ok');
+          html += `<div class="alt-size ${diffClass}">
+            <span class="alt-size-name">${s.size}</span>
+            <span class="alt-size-diff">${s.diff >= 0 ? '+' : ''}${s.diff.toFixed(1)}%</span>
+          </div>`;
+        });
+
+        html += '</div></div>';
+      }
+    });
+
+    html += '</div>';
+    container.innerHTML = html;
+  }
+
+  // Initial calculation
+  calculate();
+});
+</script>
+{% endblock %}
