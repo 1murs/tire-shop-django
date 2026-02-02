@@ -1,0 +1,166 @@
+* {
+    font-family: "Source Sans Pro", sans-serif;
+}
+
+.calculator {
+    padding: 40px 0 65px 0;
+}
+
+a.small {
+    font-size: 8pt;
+    font-weight: bold;
+}
+
+a.small:hover {
+    color: #ff00ff;
+}
+
+img.withlines {
+    border-width: 1;
+    border-color: #aaaaaa; /* #ff5500; */
+}
+
+table.withlines {
+    background-color: #e0e0e0; /*666666;*/
+
+}
+
+table.withlines td {
+    background-color: #e0e0e0; /*cccccc;*/
+    padding: 5px;
+    border: 1px solid #e0e0e0;
+}
+
+table.withlines td a.small {
+    color: #442D7F;
+    font-size: 8pt;
+    font-weight: normal;
+}
+
+table.withlines td a.smallalert {
+    color: #ff0000;
+    font-size: 8pt;
+    font-weight: normal;
+}
+
+table.withlines td.title {
+    color: #442D7F;
+    font-size: 14pt;
+    font-weight: bold;
+    text-align: center;
+}
+
+table.withlines th {
+    /*background-color: #bbbbb0;*/
+    background-color: #ffffff;
+    font-size: 8pt;
+    text-align: center;
+    border: 1px solid #e0e0e0;
+}
+
+table.withlines th a {
+    color: #442D7F;
+    font-size: 8pt;
+    font-weight: bold;
+}
+
+table.withlines th a.small {
+    color: #442D7F;
+    font-size: 8pt;
+    font-weight: normal;
+}
+
+table.withlines th a.small:hover {
+    color: #ff00ff;
+}
+
+table.withlines th a.smallalert {
+    color: #ff0000;
+    font-size: 8pt;
+    font-weight: normal;
+}
+
+font.alert {
+    color: #ff0000;
+    font-size: 16pt;
+    font-weight: bold;
+}
+
+font.title {
+    color: #7766ff;
+    font-size: 16pt;
+    font-weight: bold;
+}
+
+table.pager {
+    background-color: #888888; /*#ff5500; */
+}
+
+table.pager td {
+    color: #00ff00;
+    background-color: #000000;
+}
+
+table.pager a {
+    color: #777777;
+}
+
+table.pager td.shadow {
+    background-color: #cccccc;
+}
+
+.disabled {
+    color: #777777;
+}
+
+
+.button td {
+    color: #ffffff;
+}
+
+.button a {
+}
+
+.subMenu td {
+    color: #ffffff;
+    font-weight: bold;
+}
+
+.subMenu a {
+    color: #bbaaff;
+    font-weight: bold;
+}
+
+.subMenu a:hover {
+    color: #ff22ff;
+}
+
+.topMenu {
+    background-image: url(bg_topmenu.gif);
+}
+
+.topMenu td {
+    color: #666666;
+}
+
+.topMenu a {
+    color: #bbaaff;
+}
+
+.topMenu a:hover {
+    color: #ff22ff;
+}
+
+
+.sideMenu {
+    background-color: #000000;
+}
+
+.sideMenu a {
+    color: #bbaaff;
+    font-weight: normal;
+}
+
+.shadow {
+    color: #bbbbbb;
+}

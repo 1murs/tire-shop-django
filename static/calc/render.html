@@ -1,0 +1,1053 @@
+<html><head>
+<meta http-equiv="content-type" content="text/html; charset=UTF-8">
+<script language="JavaScript" type="text/javascript" src="gen_forms.js"></script>
+<link rel="stylesheet" type="text/css" href="app.css">
+</head>
+
+<body leftmargin="0" topmargin="0" onload="render()" marginheight="0" marginwidth="0">
+
+<script language="JavaScript 1.2" type="text/javascript">
+
+	//var parse = new RegExp("/[\?&]([\w\d]+)=([^&\?]*)/","g");
+	var parse = /[\?&]([\w\d]+)=([^&\?]*)/g;
+        var param;
+        var params = new Array(); 
+
+        /* Parse the URL and extract the query parameters */
+        while(param = parse.exec(document.location)) {
+		if(param[1].match("text")) param[2] = param[2].replace(/\+/g,' ');
+		params[param[1]] = decodeURI(param[2]);
+	}
+
+	var mm2px=0.5; //scale
+
+	var showTire=params['showTire'] || 1;
+	var showRim=params['showRim'] || 1;
+
+	var x0=params['x0'] || 160;
+	var y0=params['y0'] || 220;
+
+	var spaceW=340-80;
+	var spaceH=440-80;
+
+	var frameName=params['frameName'] || 'frame1';
+
+	var sw = params['sw'] || 255;
+	var ar = params['ar'] || 45;
+	var bd = params['bd'] || 18;
+	var etx = params['et'] || 20;
+	var rw = params['rw'] || '8.0';
+
+	function addOptionList(which) {
+		var options = new Array;
+		var selection = new Array;
+		var val;
+		options['ar'] = new Array( 20, 25, 30, 35, 40, 45, 50, 55, 60, 65, 70, 75, 80, 85, 90 );
+		options['sw'] = new Array( 115, 120, 125, 130, 135, 145, 155, 165, 175, 185, 195, 205, 215, 225, 235, 245,
+		                           255, 265, 275, 285, 295, 305, 315, 325, 335, 345, 355, 365);
+		options['bd'] = new Array( 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28 );
+		options['rw'] = new Array( '3.5', '4.0', '4.5', '5.0', '5.5', '6.0', '6.5', '7.0', '7.5', '8.0', '8.5',
+		                           '9.0', '9.5', '10.0', '10.5', '11.0', '11.5', '12.0', '12.5', '13.0' );
+		options['et'] = new Array( 55, 54, 53, 52, 51, 50, 49, 48, 47, 46, 45, 44, 43, 42, 41, 40,
+		                           39, 38, 37, 36, 35, 34, 33, 32, 31, 30, 29, 28, 27, 26, 25, 24,
+		                           23, 22, 21, 20, 19, 18, 17, 16, 15, 14, 13, 12, 11, 10,  9,  8,
+		                            7,  6,  5,  4,  3,  2,  1,  0, -1, -2, -3, -4, -5, -6, -7, -8,
+		                           -9,-10,-11,-12,-13,-14,-15,-16,-17,-18,-19,-20,-21,-22,-23,-24,
+		                          -25,-26,-27,-28,-29,-30,-31,-32,-33,-34,-35,-36,-37,-38,-39,-40,
+		                          -41,-42,-43,-44,-45,-46,-47,-48,-49,-50,-51,-52,-53,-54,-55 );
+		selection['ar'] = ar;
+		selection['sw'] = sw;
+		selection['bd'] = bd;
+		selection['rw'] = rw;
+		selection['et'] = etx;
+
+		while((val = options[which].pop()) != null) {
+			document.write("<option value='"+val+"'");
+			if(selection[which] == val)
+				document.write(" selected");
+			document.write(">"+val+"</option>\n");
+		}
+	}
+
+	function processrequest(el){
+		document.getElementById("text").innerHTML = "";
+		els=document.forms[0].elements;
+		if(el.name=='showTire'){
+			if(el.checked){
+				showTire=1;
+			}
+			else{
+				showTire=0;
+				showRim=1;
+				els.showRim.checked=true;
+			}
+		}
+		if(el.name=='showRim'){
+			if(el.checked){
+				showRim=1;
+			}
+			else{
+				showRim=0;
+				showTire=1;
+				els.showTire.checked=true;
+			}
+		}
+		if(showRim==0)
+			document.all.rimMenu.style.display = "none";
+		else
+			document.all.rimMenu.style.display = "inline";
+		if(showTire==0)
+			document.all.tireMenu.style.display = "none";
+		else
+			document.all.tireMenu.style.display = "inline";
+
+
+		if(el.name=='bd'){
+			//biddiameter
+			els.rd.selectedIndex=el.selectedIndex;
+		}
+		if(el.name=='rd'){
+			//rim diameter
+			els.bd.selectedIndex=el.selectedIndex;
+		}
+		if(el.name=='sw'){
+			//section width
+			sw=els.sw.options[els.sw.selectedIndex].value;
+			ar=els.ar.options[els.ar.selectedIndex].value;
+			rw=els.rw.options[els.rw.selectedIndex].value;
+			rw=rw*25.4;
+			if(rw>sw){
+				//wheel is wider than tire
+				maxRimW=rimWidthMax(sw,ar);
+				setSelect(els.rw,maxRimW);
+			}
+		}
+		if(el.name=='sw' || el.name=='ar'){
+			sw=els.sw.options[els.sw.selectedIndex].value;
+			ar=els.ar.options[els.ar.selectedIndex].value;
+			rw=els.rw.options[els.rw.selectedIndex].value;
+			if(rw<rimWidthMin(sw,ar)){
+				//wheel is narrower than tire can accept
+				setSelect(els.rw,rimWidthMin(sw,ar));
+			}
+		}
+
+
+		if(el.name=='rw'){
+			//rim width
+			sw=els.sw.options[els.sw.selectedIndex].value;
+			rw=els.rw.options[els.rw.selectedIndex].value;
+			rw=rw*25.4;
+			if(rw>sw){
+				//wheel is wider than tire
+				minSW=Math.ceil((rw-5)/10)*10+5;
+				setSelect(els.sw,minSW);
+			}
+		}
+		render();
+	}
+
+	function rimWidthMax(sectionwidth,aspectratio){
+		//rim shouldn't be wider than tire
+		rimwidthmax = sectionwidth/25.4;
+		rimwidthmax = Math.round(rimwidthmax*2.0)/2.0;
+		rimwidthmax -= 0.5; //at least half inch narrower than tire
+		return rimwidthmax;
+	}
+
+	function rimWidthMin(sectionwidth,aspectratio){
+		//rim shouldn't be narrower than tire walls can be bended inward
+		//calculation is from assumption that max. allowed bend is: wall*a+b
+		wall = sectionwidth*aspectratio/100;
+		rimwidthmin = (sectionwidth - 0.21*wall - 47.49 )/25.4;
+		rimwidthmin = Math.ceil(rimwidthmin*2.0)/2.0;
+		return rimwidthmin;
+	}
+
+	var tireHeight_mm=0;
+	var tireWidth_mm=0;
+	var tireWall_mm=0;
+	var rimWidth_mm=0;
+	var rimHeight_mm=0;
+	var maxW_mm=0;
+	var maxH_mm=0;
+	var padW_mm=0;
+	var padH_mm=0;
+	var et_mm=0;
+	var backspace_mm=0;
+
+	function calculateSizes(){
+		e=document.forms[0].elements;
+			
+			bd_inch=e.bd.options[e.bd.selectedIndex].value;
+			rd_inch=e.rd.options[e.rd.selectedIndex].value;
+			rw_inch=e.rw.options[e.rw.selectedIndex].value;
+
+		sw=1*e.sw.options[e.sw.selectedIndex].value;
+		ar=1*e.ar.options[e.ar.selectedIndex].value;
+		bd=Math.round(25.4*e.bd.options[e.bd.selectedIndex].value);
+		rd=Math.round(25.4*e.rd.options[e.rd.selectedIndex].value);
+		rw=Math.round(25.4*e.rw.options[e.rw.selectedIndex].value);
+		et=1*e.et.options[e.et.selectedIndex].value;
+
+			if(showRim==0){
+				rw=Math.round(sw-30);
+			}
+
+		et_mm=et;
+
+		rimHeight_mm=rd;
+		rimWidth_mm=rw;
+		tireWidth_mm=sw;
+		tireWall_mm=Math.round(tireWidth_mm*ar/100);
+		tireHeight_mm=rimHeight_mm+tireWall_mm*2;
+
+		maxW_mm=tireWidth_mm;
+		maxH_mm=tireHeight_mm;
+		if(showTire==0){
+			maxW_mm=rimWidth_mm;
+			maxH_mm=rimHeight_mm;
+		}
+		mm2px=Math.min(spaceW/maxW_mm,spaceH/maxH_mm);
+		//save desirable value
+		e.mm2pxMy.value=mm2px;
+		//inform other frame
+		var lc=new String(document.location);
+		pd=parent.document;
+		for(i=0;i<pd.all.length; i++){
+			el=pd.all[i];
+			if(el.tagName!=null)
+			if(el.tagName=='iframe' || el.tagName=='IFRAME'){
+				if(el.name!=null)
+				if(el.name!="frame1"){
+					//other frame found
+					if(parent[el.name]!=null)
+					if(parent[el.name].document!=null)
+					if(parent[el.name].document.forms[0]!=null)
+					if(parent[el.name].document.forms[0].elements.mm2pxOther!=null){
+						parent[el.name].document.forms[0].elements.mm2pxOther.value=document.forms[0].elements.mm2pxMy.value;
+						//take his value too
+						document.forms[0].elements.mm2pxOther.value=parent[el.name].document.forms[0].elements.mm2pxMy.value;
+						parent[el.name].resize();
+						break;
+					}
+				}
+			}
+		}
+		if(e.mm2pxOther.value>0)
+			mm2px=Math.min(e.mm2pxMy.value,e.mm2pxOther.value);
+
+//document.getElementById("debug").innerHTML = "calculateSizes()"+"<br>scaleW: "+(spaceW/maxW_mm)+"<br>scaleH: "+(spaceH/maxH_mm)+"<br>e.mm2pxMy.value="+e.mm2pxMy.value+"<br>e.mm2pxOther.value="+e.mm2pxOther.value+"<br>mm2px="+mm2px+"<br>";
+
+		padW_mm=110/93*40;
+		padH_mm=110/93*174;
+
+		backspace_mm=rimWidth_mm/2+et_mm;
+
+	}
+
+	var maxW=0;
+	var maxH=0;
+	var tireX=0;
+	var tireY=0;
+	var tireW=0;
+	var tireH=0;
+	var rimX=0;
+	var rimY=0;
+	var rimW=0;
+	var rimH=0;
+	var lipH;
+		var tire2lipIn=0;
+		var tire2lipDown=0;
+	var padX=0;
+	var padW=0;
+	var padH=0;
+	var tireOutR=32;
+	var tireInR=15;
+	var rubberH=9;
+	var wallH=0;
+	var tireBend=0;
+
+	function calculateCoordinates(){
+		maxH=Math.floor(maxH_mm*mm2px);
+		if(maxH%2==0) maxH++;
+		maxW=Math.floor(maxW_mm*mm2px);
+		if(maxW%2==0) maxW++;
+
+		tireH=Math.floor(tireHeight_mm*mm2px);
+		if(tireH%2==0) tireH++;
+		tireW=Math.floor(tireWidth_mm*mm2px);
+		if(tireW%2==0) tireW++;
+		tireX=x0-(tireW-1)/2;
+		tireY=y0-(tireH-1)/2;
+
+		rimH=Math.floor(rimHeight_mm*mm2px);
+		if(rimH%2==0) rimH++;
+		rimW=Math.floor(rimWidth_mm*mm2px);
+		if(rimW%2==0) rimW++;
+		rimX=x0-(rimW-1)/2;
+		rimY=y0-(rimH-1)/2;
+
+		lipH=Math.round(rimW/200*47);
+
+		padH=Math.floor(padH_mm*mm2px);
+		if(padH%2==0) padH++;
+		padW=Math.round(padW_mm*mm2px);
+		padX=Math.round((rimWidth_mm/2-et_mm)*mm2px)-padW+1;
+
+		rubberH=Math.round(tireH/50);
+
+		tire2lipIn=Math.round(rimW/200*12);
+		tire2lipDown=Math.round(rimW/200*18);
+
+		wallH=Math.round((tireH-rimH)/2);
+		tireBend=(tireW-rimW)/2+tire2lipIn;
+		if(tireBend<1)
+			tireBend=0;
+
+		tireOutR=Math.round(wallH/3);
+		tireInR=tireBend;
+		if(tireOutR+tireInR>=wallH){
+			tireInR=wallH-tireOutR;
+		}
+	}
+
+	function setElement(id,x,y,w,h){
+		es=document.getElementById(id).style;
+		es.left=x;
+		es.top=y;
+		es.width=w;
+		es.height=h;
+	}
+
+
+
+	var rendering=1;
+	var resizingRequired=0;
+
+	function render(){
+		rendering=1;
+		calculateSizes();
+		calculateCoordinates();
+		draw();
+		rendering=0;
+		if(resizingRequired==1)
+			resize();
+		parent.loadNextFrame();
+		parent.compareSizes();
+	}
+
+	function resize(){
+		if(rendering==1){
+			resizingRequired=1;
+			return;
+		}
+		rendering=1;
+		e=document.forms[0].elements;
+		if(mm2px!=Math.min(e.mm2pxMy.value,e.mm2pxOther.value)){
+			mm2px=Math.min(e.mm2pxMy.value,e.mm2pxOther.value);
+//document.getElementById("debug").innerHTML = "resize()"+"<br>e.mm2pxMy.value="+e.mm2pxMy.value+"<br>e.mm2pxOther.value="+e.mm2pxOther.value+"<br>mm2px="+mm2px+"<br>";
+			calculateCoordinates();
+			draw();
+		}
+		rendering=0;
+		resizingRequired=0;
+	}
+
+	function setShowSize(id,text,whichSide,placeText,x,y,w,h){
+		//whichSide: up,down,left,right
+		//placeText: up,down,center
+		sizeLineInShift=4;
+		textBoxW=100;
+		textBoxH=30;
+		if(whichSide=='left' || whichSide=='right'){
+			//vertical size
+			setElement(id+"_bar1",x,y,w,1);
+			setElement(id+"_bar2",x,y+h-1,w,1);
+			sizeLineX=x+sizeLineInShift; //left
+			if(whichSide=='right')
+				sizeLineX=x+w-sizeLineInShift-1;
+			setElement(id+"_sizeLine",sizeLineX,y,1,h);
+			setElement(id+"_arrow1",sizeLineX-2,y+1,5,5);
+			setElement(id+"_arrow2",sizeLineX-2,y+h-6,5,5);
+			setElement(id+"_text",sizeLineX-textBoxW/2,h*0.2,textBoxW,h*0.6);
+		}
+		else{
+			//horisontal size
+			if(w<0){
+				w=-w+2;
+				x=x-w+1;
+			}
+			setElement(id+"_bar1",x,y,1,h);
+			setElement(id+"_bar2",x+w-1,y,1,h);
+			sizeLineY=y+sizeLineInShift; //top
+			if(whichSide=='down')
+				sizeLineY=y+h-sizeLineInShift-1;
+			setElement(id+"_sizeLine",x,sizeLineY,Math.max(w,40),1);
+			if(w>12){
+				setElement(id+"_arrow1",x+1,sizeLineY-2,5,5);
+				setElement(id+"_arrow2",x+w-6,sizeLineY-2,5,5);
+			}
+			else{
+				setElement(id+"_arrow1",x+w,sizeLineY-2,5,5);
+				setElement(id+"_arrow2",x-5,sizeLineY-2,5,5);
+			}
+			setElement(id+"_text",x,sizeLineY-textBoxH/2,w,textBoxH);
+
+		}
+
+		innerHTML="<table border=0 cellspacing=0 cellpadding=0";
+		if(whichSide=='left' || whichSide=='right')
+			innerHTML+=" align='center' width=1";
+		else
+			innerHTML+=" width='100%' ";
+		innerHTML+=" height='100%'><tr><td align='center'";
+		if(whichSide=='up' || whichSide=='down')
+			innerHTML+=" nowrap";
+		if(placeText=='up')
+			innerHTML+=" valign='top'";
+		else
+		if(placeText=='down')
+			innerHTML+=" valign='bottom'";
+		else
+		if(placeText=='center')
+			innerHTML+=" valign='center'";
+		innerHTML+="><font style='{color:black;";
+		if(whichSide=='left' || whichSide=='right')
+			innerHTML+="background-color:white;"
+		innerHTML+="}'>"+text+"</font></td></tr></table>";
+
+		document.getElementById(id+"_text").innerHTML = innerHTML;
+	}
+
+	function setShowPointer(id,text,whichSide,placeText,x,y,ln){
+		//whichSide: up,down,left,right
+		//placeText: up,down,center
+		textBoxW=100;
+		textBoxH=30;
+		if(whichSide=='left'){
+			setElement(id+"_line",x,y,ln,1);
+			setElement(id+"_arrow",x+1,y-2,5,5);
+			setElement(id+"_text",x,y-textBoxH/2,ln,textBoxH);
+		}
+		else
+		if(whichSide=='right'){
+			setElement(id+"_line",x-ln,y,ln,1);
+			setElement(id+"_arrow",x-6,y-2,5,5);
+			setElement(id+"_text",x-ln,y-textBoxH/2,ln,textBoxH);
+		}
+		else{
+			alert("Not ready");
+		}
+
+		innerHTML="<table border=0 cellspacing=0 cellpadding=0";
+		if(whichSide=='up' || whichSide=='down')
+			innerHTML+=" align='center' width=1";
+		else
+			innerHTML+=" width='100%' ";
+		innerHTML+=" height='100%'><tr><td";
+		if(whichSide=='left' || whichSide=='right')
+			innerHTML+=" nowrap";
+		if(whichSide=='left')
+			innerHTML+=" align='right'";
+		else
+		if(whichSide=='right')
+			innerHTML+=" align='left'";
+		else
+			innerHTML+=" align='center'";
+		if(placeText=='up')
+			innerHTML+=" valign='top'";
+		else
+		if(placeText=='down')
+			innerHTML+=" valign='bottom'";
+		else
+		if(placeText=='center')
+			innerHTML+=" valign='center'";
+		innerHTML+="><font style='{color:black;";
+		if(whichSide=='up' || whichSide=='down')
+			innerHTML+="background-color:white;"
+		innerHTML+="}'>"+text+"</font></td></tr></table>";
+
+		document.getElementById(id+"_text").innerHTML = innerHTML;
+	}
+
+	function mmAndInches(mm){
+		if(mm==0)
+			return "<b>0</b>";
+		inches=(Math.round(mm*10.0/25.4))/10.0;
+		mm=Math.round(mm);
+		return ""+mm+"<small>мм</small> ("+inches+"'')";
+	}
+
+	function hideGroup(groupName){
+		for(i=0;i<document.all.length;i++){
+			el=document.all[i];
+			if(el.id!=null)
+			if(el.id!='')
+			if(el.id.indexOf(groupName)==0){
+				es=el.style;
+				if(es!=null){
+					es.left=10000;
+					es.top=2;
+					es.width=0;
+					es.height=0;
+				}
+			}
+		}
+	}
+
+	function draw(){
+		if(showTire==0)
+			hideGroup("tire");
+		else{
+			//side view
+			x=320+5;
+			if(frameName.indexOf("2")>0)
+				x=0-5;
+			setElement("tireSVl",x-tireH/2,y0-tireH/2,tireH,tireH);
+			setElement("tireSV2",x-tireH/2+1,y0-tireH/2+1,tireH-2,tireH-2);
+			setElement("tireSV3",x-rimH/2,y0-rimH/2,rimH,rimH);
+			setElement("tireSV4",x-rimH/2+1,y0-rimH/2+1,rimH-2,rimH-2);
+
+			setElement("tireDiv",tireX,tireY,tireW,tireH);
+			//tire bended walls
+			if(tireBend<1)
+				hideGroup("tireBW");
+			else{
+				h=tireH-wallH*2+tireInR*2;
+				setElement("tireBWl",0,wallH-tireInR,tireBend,h);
+				setElement("tireBWr",tireW-tireBend,wallH-tireInR,tireBend,h);
+				//hide visible from inside part (only lower part)-->
+				setElement("tireBWH",tireInR,tireH-wallH,tireW-tireInR*2,tireInR);
+			}
+			//tire outer corners
+			if(tireOutR<=1)
+				hideGroup("tireOC");
+			else{
+				setElement("tireOCnw",0,0,tireOutR,tireOutR);
+				setElement("tireOCne",tireW-tireOutR,0,tireOutR,tireOutR);
+				setElement("tireOCse",tireW-tireOutR,tireH-tireOutR,tireOutR,tireOutR);
+				setElement("tireOCsw",0,tireH-tireOutR,tireOutR,tireOutR);
+				//tire outer corners radius (gray cut)
+				r=tireOutR-rubberH;
+				if(r<1)
+					hideGroup("tireOCR");
+				else{
+					setElement("tireOCRnw",rubberH,rubberH,r,r);
+					setElement("tireOCRne",tireW-tireOutR,rubberH,r,r);
+					setElement("tireOCRse",tireW-tireOutR,tireH-tireOutR,r,r);
+					setElement("tireOCRsw",rubberH,tireH-tireOutR,r,r);
+				}
+			}
+			//tire inner corners
+			if(tireInR<=1)
+				hideGroup("tireIC");
+			else{
+				setElement("tireICnw",0,tireH-wallH,tireInR,tireInR);
+				setElement("tireICne",tireW-tireInR,tireH-wallH,tireInR,tireInR);
+				setElement("tireICse",tireW-tireInR,wallH-tireInR,tireInR,tireInR);
+				setElement("tireICsw",0,wallH-tireInR,tireInR,tireInR);
+				//tire inner corners radius (gray cut)
+				r=tireInR-rubberH;
+				if(r<1)
+					hideGroup("tireICR");
+				else{
+					setElement("tireICRnw",rubberH,tireH-wallH+rubberH,r,r);
+					setElement("tireICRne",tireW-tireInR,tireH-wallH+rubberH,r,r);
+					setElement("tireICRse",tireW-tireInR,wallH-tireInR,r,r);
+					setElement("tireICRsw",rubberH,wallH-tireInR,r,r);
+				}
+			}
+			//tire work surface
+			setElement("tireWSn",tireOutR,0,tireW-tireOutR*2,rubberH);
+			setElement("tireWSs",tireOutR,tireH-rubberH,tireW-tireOutR*2,rubberH);
+			//tire side walls
+			r=wallH-tireOutR-tireInR;
+			if(r<1)
+				hideGroup("tireSW");
+			else{
+				setElement("tireSWnw",0,tireOutR,rubberH,r);
+				setElement("tireSWsw",0,tireH-tireOutR-r,rubberH,r);
+				setElement("tireSWne",tireW-rubberH,tireOutR,rubberH,r);
+				setElement("tireSWse",tireW-rubberH,tireH-tireOutR-r,rubberH,r);
+			}
+			//tire 2 rim "in"
+			r=rubberH+tireBend-tireInR;
+			setElement("tire2RInw",tireInR,wallH-rubberH,r,rubberH);
+			setElement("tire2RIne",tireW-tireBend-rubberH,wallH-rubberH,r,rubberH);
+			setElement("tire2RIsw",tireInR,tireH-wallH,r,rubberH);
+			setElement("tire2RIse",tireW-tireBend-rubberH,tireH-wallH,r,rubberH);
+			//tire 2 rim "down"
+			setElement("tire2RDnw",tireBend,wallH,rubberH,tire2lipDown);
+			setElement("tire2RDne",tireW-tireBend-rubberH,wallH,rubberH,tire2lipDown);
+			setElement("tire2RDsw",tireBend,tireH-wallH-tire2lipDown,rubberH,tire2lipDown);
+			setElement("tire2RDse",tireW-tireBend-rubberH,tireH-wallH-tire2lipDown,rubberH,tire2lipDown);
+			//tire "lips"
+			setElement("tireLPl",tireBend,wallH+tire2lipDown,rubberH,tireH-wallH*2-tire2lipDown*2);
+			setElement("tireLPr",tireW-tireBend-rubberH,wallH+tire2lipDown,rubberH,tireH-wallH*2-tire2lipDown*2);
+
+			//tire sizes
+			setShowSize("tireH",mmAndInches(tireHeight_mm),"right","up",tireW-25,2,60,tireH-4);
+			setShowSize("tireW",mmAndInches(tireWidth_mm),"down","down",2,tireH-20,maxW-4,35);
+
+		}
+		if(showRim==0)
+			hideGroup("rim");
+		else{
+			//side view
+			x=320+5;
+			if(frameName.indexOf("2")>0)
+				x=0-5;
+			setElement("rimSVl",x-rimH/2,y0-rimH/2,rimH,rimH);
+			setElement("rimSV2",x-rimH/2+1,y0-rimH/2+1,rimH-2,rimH-2);
+
+			setElement("rimDiv",rimX,rimY,rimW,rimH);
+			setElement("rimBckg",0,0,rimW,rimH);
+			//lips
+			if(showTire==0){
+				setElement("rimLip1n",0,0,rimW,lipH);
+				setElement("rimLip1s",0,rimH-lipH,rimW,lipH);
+				hideGroup("rimLip2");
+			}
+			else{
+				hideGroup("rimLip1");
+				setElement("rimLip2n",0,0,rimW,lipH);
+				setElement("rimLip2s",0,rimH-lipH,rimW,lipH);
+				//tire to lip down
+				setElement("rimLip2TDnw",tire2lipIn,0,rubberH,tire2lipDown);
+				setElement("rimLip2TDne",rimW-rubberH-tire2lipIn,0,rubberH,tire2lipDown);
+				setElement("rimLip2TDsw",tire2lipIn,rimH-tire2lipDown,rubberH,tire2lipDown);
+				setElement("rimLip2TDse",rimW-rubberH-tire2lipIn,rimH-tire2lipDown,rubberH,tire2lipDown);
+			}
+			//set spokes
+			setElement("rimSpokes",padX,0,padW,rimH);
+			el=document.getElementById("rimSpokes");
+			if(et_mm>30)
+				el.src="img/offset/spokes_hi.gif";
+			else
+			if(et_mm<-30)
+				el.src="img/offset/spokes_lo.gif";
+			else
+				el.src="img/offset/spokes.gif";
+
+			setElement("rimPad",padX,rimH/2-padH/2,padW,padH);
+			//rim sizes
+			setShowSize("rimH",mmAndInches(rimHeight_mm),"left","down",rimW/2-maxW/2-25,7,(maxW-rimW)/2+35,rimH-14);
+			setShowSize("rimW",mmAndInches(rimWidth_mm),"up","up",5,(rimH-maxH)/2-15,rimW-10,(maxH-rimH)/2+40);
+			//backspace
+//			setShowSize("rimBS","&nbsp;&nbsp;BackSpace&nbsp;"+mmAndInches(backspace_mm+12),"up","up",padX+padW-1,rimH/2-30,rimW-padX-padW+1,10);
+			//offset
+			setShowSize("rimET","&nbsp;&nbsp;&nbsp;&nbsp;Вылет&nbsp;"+mmAndInches(et_mm),"down","down",padX+padW-1,rimH/2+10,rimW/2-padX-padW+2,padH/2);
+			//mounting pad
+			setShowPointer("rimMP","Привалочная<br>плоскость","left","up",padX+padW,rimH/2+20,120);
+
+			//rim face
+			setShowPointer("rimRF","Лицевая<br>сторона","right","up",90,y0-50,80);
+		}
+
+		setElement("centerLineVertical",x0,y0-maxH/2-5,1,maxH+10);
+		setElement("centerLineHorisonal",x0-maxW/2-5,y0,maxW+10,1);
+
+		//setElement("eL",0,0,imgW,clipH);
+	}
+</script>
+
+<form action="render.html">
+<input name="mm2pxMy" value="0.5240174672489083" type="hidden">
+<input name="mm2pxOther" value="0" type="hidden">
+<table class="withlines" border="0" cellpadding="2" cellspacing="1" align="center">
+	<tbody><tr>
+		<th>
+			<input name="showTire" checked="checked" onclick="processrequest(this)" type="checkbox">
+			Шина
+		</th>
+		<th>
+			<input name="showRim" checked="checked" onclick="processrequest(this)" type="checkbox">
+			Диск/вылет (ET)
+		</th>
+	</tr>
+	<tr>
+		<td nowrap="nowrap" align="center">
+		<span id="tireMenu">
+			<select name="sw" onchange="processrequest(this)">
+			<script language="Javascript">addOptionList('sw')</script><option value="365">365</option>
+<option value="355">355</option>
+<option value="345">345</option>
+<option value="335">335</option>
+<option value="325">325</option>
+<option value="315">315</option>
+<option value="305">305</option>
+<option value="295">295</option>
+<option value="285">285</option>
+<option value="275">275</option>
+<option value="265">265</option>
+<option value="255" selected="selected">255</option>
+<option value="245">245</option>
+<option value="235">235</option>
+<option value="225">225</option>
+<option value="215">215</option>
+<option value="205">205</option>
+<option value="195">195</option>
+<option value="185">185</option>
+<option value="175">175</option>
+<option value="165">165</option>
+<option value="155">155</option>
+<option value="145">145</option>
+<option value="135">135</option>
+<option value="130">130</option>
+<option value="125">125</option>
+<option value="120">120</option>
+<option value="115">115</option>
+
+			</select>
+			/
+			<select name="ar" onchange="processrequest(this)">
+			<script language="Javascript">addOptionList('ar')</script><option value="90">90</option>
+<option value="85">85</option>
+<option value="80">80</option>
+<option value="75">75</option>
+<option value="70">70</option>
+<option value="65">65</option>
+<option value="60">60</option>
+<option value="55">55</option>
+<option value="50">50</option>
+<option value="45" selected="selected">45</option>
+<option value="40">40</option>
+<option value="35">35</option>
+<option value="30">30</option>
+<option value="25">25</option>
+<option value="20">20</option>
+
+			</select>
+			R<select name="bd" onchange="processrequest(this)">
+			<script language="Javascript">addOptionList('bd')</script><option value="28">28</option>
+<option value="27">27</option>
+<option value="26">26</option>
+<option value="25">25</option>
+<option value="24">24</option>
+<option value="23">23</option>
+<option value="22">22</option>
+<option value="21">21</option>
+<option value="20">20</option>
+<option value="19">19</option>
+<option value="18" selected="selected">18</option>
+<option value="17">17</option>
+<option value="16">16</option>
+<option value="15">15</option>
+<option value="14">14</option>
+<option value="13">13</option>
+
+			</select>
+		</span>
+		</td>
+		<td nowrap="nowrap" align="center">
+		<span id="rimMenu">
+			<select name="rd" onchange="processrequest(this)">
+			<script language="Javascript">addOptionList('bd')</script><option value="28">28</option>
+<option value="27">27</option>
+<option value="26">26</option>
+<option value="25">25</option>
+<option value="24">24</option>
+<option value="23">23</option>
+<option value="22">22</option>
+<option value="21">21</option>
+<option value="20">20</option>
+<option value="19">19</option>
+<option value="18" selected="selected">18</option>
+<option value="17">17</option>
+<option value="16">16</option>
+<option value="15">15</option>
+<option value="14">14</option>
+<option value="13">13</option>
+
+			</select>
+			X<select name="rw" onchange="processrequest(this)">
+			<script language="Javascript">addOptionList('rw')</script><option value="13.0">13.0</option>
+<option value="12.5">12.5</option>
+<option value="12.0">12.0</option>
+<option value="11.5">11.5</option>
+<option value="11.0">11.0</option>
+<option value="10.5">10.5</option>
+<option value="10.0">10.0</option>
+<option value="9.5">9.5</option>
+<option value="9.0">9.0</option>
+<option value="8.5">8.5</option>
+<option value="8.0" selected="selected">8.0</option>
+<option value="7.5">7.5</option>
+<option value="7.0">7.0</option>
+<option value="6.5">6.5</option>
+<option value="6.0">6.0</option>
+<option value="5.5">5.5</option>
+<option value="5.0">5.0</option>
+<option value="4.5">4.5</option>
+<option value="4.0">4.0</option>
+<option value="3.5">3.5</option>
+
+			</select>
+			<small>ET</small><select name="et" onchange="processrequest(this)">
+			<script language="Javascript">addOptionList('et')</script><option value="-55">-55</option>
+<option value="-54">-54</option>
+<option value="-53">-53</option>
+<option value="-52">-52</option>
+<option value="-51">-51</option>
+<option value="-50">-50</option>
+<option value="-49">-49</option>
+<option value="-48">-48</option>
+<option value="-47">-47</option>
+<option value="-46">-46</option>
+<option value="-45">-45</option>
+<option value="-44">-44</option>
+<option value="-43">-43</option>
+<option value="-42">-42</option>
+<option value="-41">-41</option>
+<option value="-40">-40</option>
+<option value="-39">-39</option>
+<option value="-38">-38</option>
+<option value="-37">-37</option>
+<option value="-36">-36</option>
+<option value="-35">-35</option>
+<option value="-34">-34</option>
+<option value="-33">-33</option>
+<option value="-32">-32</option>
+<option value="-31">-31</option>
+<option value="-30">-30</option>
+<option value="-29">-29</option>
+<option value="-28">-28</option>
+<option value="-27">-27</option>
+<option value="-26">-26</option>
+<option value="-25">-25</option>
+<option value="-24">-24</option>
+<option value="-23">-23</option>
+<option value="-22">-22</option>
+<option value="-21">-21</option>
+<option value="-20">-20</option>
+<option value="-19">-19</option>
+<option value="-18">-18</option>
+<option value="-17">-17</option>
+<option value="-16">-16</option>
+<option value="-15">-15</option>
+<option value="-14">-14</option>
+<option value="-13">-13</option>
+<option value="-12">-12</option>
+<option value="-11">-11</option>
+<option value="-10">-10</option>
+<option value="-9">-9</option>
+<option value="-8">-8</option>
+<option value="-7">-7</option>
+<option value="-6">-6</option>
+<option value="-5">-5</option>
+<option value="-4">-4</option>
+<option value="-3">-3</option>
+<option value="-2">-2</option>
+<option value="-1">-1</option>
+<option value="0">0</option>
+<option value="1">1</option>
+<option value="2">2</option>
+<option value="3">3</option>
+<option value="4">4</option>
+<option value="5">5</option>
+<option value="6">6</option>
+<option value="7">7</option>
+<option value="8">8</option>
+<option value="9">9</option>
+<option value="10">10</option>
+<option value="11">11</option>
+<option value="12">12</option>
+<option value="13">13</option>
+<option value="14">14</option>
+<option value="15">15</option>
+<option value="16">16</option>
+<option value="17">17</option>
+<option value="18">18</option>
+<option value="19">19</option>
+<option value="20" selected="selected">20</option>
+<option value="21">21</option>
+<option value="22">22</option>
+<option value="23">23</option>
+<option value="24">24</option>
+<option value="25">25</option>
+<option value="26">26</option>
+<option value="27">27</option>
+<option value="28">28</option>
+<option value="29">29</option>
+<option value="30">30</option>
+<option value="31">31</option>
+<option value="32">32</option>
+<option value="33">33</option>
+<option value="34">34</option>
+<option value="35">35</option>
+<option value="36">36</option>
+<option value="37">37</option>
+<option value="38">38</option>
+<option value="39">39</option>
+<option value="40">40</option>
+<option value="41">41</option>
+<option value="42">42</option>
+<option value="43">43</option>
+<option value="44">44</option>
+<option value="45">45</option>
+<option value="46">46</option>
+<option value="47">47</option>
+<option value="48">48</option>
+<option value="49">49</option>
+<option value="50">50</option>
+<option value="51">51</option>
+<option value="52">52</option>
+<option value="53">53</option>
+<option value="54">54</option>
+<option value="55">55</option>
+
+			</select>
+		</span>
+		</td>
+	</tr>
+</tbody></table>
+
+</form>
+<center>
+<div id="vatman" style="color:black;position:relative;width:320;height:440;background-color:white;overflow:hidden;">
+
+<span id="text" style="color:black;position:absolute;top:4;left:10;z-index:1000;"><small><script language="Javascript">document.write(params['text'] || "");</script></small></span>
+
+	<!--tire side view-->
+	<img id="tireSVl" style="position: absolute; top: 39.5px; left: 144.5px; width: 361px; height: 361px; z-index: 1;" src="circle_gray.gif">
+	<img id="tireSV2" style="position: absolute; top: 40.5px; left: 145.5px; width: 359px; height: 359px; z-index: 1;" src="circle_white.gif">
+	<img id="tireSV3" style="position: absolute; top: 100.5px; left: 205.5px; width: 239px; height: 239px; z-index: 1;" src="circle_gray.gif">
+	<img id="tireSV4" style="position: absolute; top: 101.5px; left: 206.5px; width: 237px; height: 237px; z-index: 1;" src="circle_white.gif">
+	<!--rim side view-->
+	<img id="rimSVl" style="position: absolute; top: 100.5px; left: 205.5px; width: 239px; height: 239px; z-index: 1;" src="circle_gray.gif">
+	<img id="rimSV2" style="position: absolute; top: 101.5px; left: 206.5px; width: 237px; height: 237px; z-index: 1;" src="circle_white.gif">
+
+	<div id="tireDiv" style="position: absolute; top: 40px; left: 94px; width: 133px; height: 361px; z-index: 1; background-color: rgb(178, 178, 178);">
+		<!--tire bended walls-->
+		<img id="tireBWl" style="position: absolute; top: 42px; left: 0pt; width: 19px; height: 277px; z-index: 1;" src="tiresidewalll.gif">
+		<img id="tireBWr" style="position: absolute; top: 42px; left: 114px; width: 19px; height: 277px; z-index: 1;" src="tiresidewallr.gif">
+		<!--hide visible from inside part (only lower part)-->
+		<div id="tireBWH" style="position: absolute; top: 300px; left: 19px; width: 95px; height: 19px; z-index: 1; background-color: rgb(178, 178, 178);"></div>
+		<!--tire outer corners-->
+		<img id="tireOCnw" style="position: absolute; top: 0pt; left: 0pt; width: 20px; height: 20px; z-index: 1;" src="corner1nw.gif">
+		<img id="tireOCne" style="position: absolute; top: 0pt; left: 113px; width: 20px; height: 20px; z-index: 1;" src="corner1ne.gif">
+		<img id="tireOCse" style="position: absolute; top: 341px; left: 113px; width: 20px; height: 20px; z-index: 1;" src="corner1se.gif">
+		<img id="tireOCsw" style="position: absolute; top: 341px; left: 0pt; width: 20px; height: 20px; z-index: 1;" src="corner1sw.gif">
+		<!--tire outer corners radius-->
+		<img id="tireOCRnw" style="position: absolute; top: 7px; left: 7px; width: 13px; height: 13px; z-index: 1;" src="corner3nw.gif">
+		<img id="tireOCRne" style="position: absolute; top: 7px; left: 113px; width: 13px; height: 13px; z-index: 1;" src="corner3ne.gif">
+		<img id="tireOCRse" style="position: absolute; top: 341px; left: 113px; width: 13px; height: 13px; z-index: 1;" src="corner3se.gif">
+		<img id="tireOCRsw" style="position: absolute; top: 341px; left: 7px; width: 13px; height: 13px; z-index: 1;" src="corner3sw.gif">
+		<!--tire inner corners-->
+		<img id="tireICnw" style="position: absolute; top: 300px; left: 0pt; width: 19px; height: 19px; z-index: 1;" src="corner2nw.gif">
+		<img id="tireICne" style="position: absolute; top: 300px; left: 114px; width: 19px; height: 19px; z-index: 1;" src="corner2ne.gif">
+		<img id="tireICse" style="position: absolute; top: 42px; left: 114px; width: 19px; height: 19px; z-index: 1;" src="corner2se.gif">
+		<img id="tireICsw" style="position: absolute; top: 42px; left: 0pt; width: 19px; height: 19px; z-index: 1;" src="corner2sw.gif">
+		<!--tire inner corners radius-->
+		<img id="tireICRnw" style="position: absolute; top: 307px; left: 7px; width: 12px; height: 12px; z-index: 1;" src="corner3nw.gif">
+		<img id="tireICRne" style="position: absolute; top: 307px; left: 114px; width: 12px; height: 12px; z-index: 1;" src="corner3ne.gif">
+		<img id="tireICRse" style="position: absolute; top: 42px; left: 114px; width: 12px; height: 12px; z-index: 1;" src="corner3se.gif">
+		<img id="tireICRsw" style="position: absolute; top: 42px; left: 7px; width: 12px; height: 12px; z-index: 1;" src="corner3sw.gif">
+		<!--tire work surface-->
+		<img id="tireWSn" style="position: absolute; top: 0pt; left: 20px; width: 93px; height: 7px; z-index: 1;" src="dot_black.gif">
+		<img id="tireWSs" style="position: absolute; top: 354px; left: 20px; width: 93px; height: 7px; z-index: 1;" src="dot_black.gif">
+		<!--tire side walls-->
+		<img id="tireSWnw" style="position: absolute; top: 20px; left: 0pt; width: 7px; height: 22px; z-index: 1;" src="dot_black.gif">
+		<img id="tireSWne" style="position: absolute; top: 20px; left: 126px; width: 7px; height: 22px; z-index: 1;" src="dot_black.gif">
+		<img id="tireSWse" style="position: absolute; top: 319px; left: 126px; width: 7px; height: 22px; z-index: 1;" src="dot_black.gif">
+		<img id="tireSWsw" style="position: absolute; top: 319px; left: 0pt; width: 7px; height: 22px; z-index: 1;" src="dot_black.gif">
+		<!--tire 2 rim "in"-->
+		<img id="tire2RInw" style="position: absolute; top: 54px; left: 19px; width: 7px; height: 7px; z-index: 1;" src="dot_black.gif">
+		<img id="tire2RIne" style="position: absolute; top: 54px; left: 107px; width: 7px; height: 7px; z-index: 1;" src="dot_black.gif">
+		<img id="tire2RIse" style="position: absolute; top: 300px; left: 107px; width: 7px; height: 7px; z-index: 1;" src="dot_black.gif">
+		<img id="tire2RIsw" style="position: absolute; top: 300px; left: 19px; width: 7px; height: 7px; z-index: 1;" src="dot_black.gif">
+		<!--tire 2 rim "down"-->
+		<img id="tire2RDnw" style="position: absolute; top: 61px; left: 19px; width: 7px; height: 10px; z-index: 4;" src="dot_black.gif">
+		<img id="tire2RDne" style="position: absolute; top: 61px; left: 107px; width: 7px; height: 10px; z-index: 4;" src="dot_black.gif">
+		<img id="tire2RDse" style="position: absolute; top: 290px; left: 107px; width: 7px; height: 10px; z-index: 4;" src="dot_black.gif">
+		<img id="tire2RDsw" style="position: absolute; top: 290px; left: 19px; width: 7px; height: 10px; z-index: 4;" src="dot_black.gif">
+		<!--tire "lips"-->
+		<img id="tireLPl" style="position: absolute; top: 71px; left: 19px; width: 7px; height: 219px; z-index: 4;" src="tirelip.gif">
+		<img id="tireLPr" style="position: absolute; top: 71px; left: 107px; width: 7px; height: 219px; z-index: 4;" src="tirelip.gif">
+
+		<img id="tireH_bar1" style="position: absolute; top: 2px; left: 108px; width: 60px; height: 1px; z-index: 100;" src="dot_black.gif">
+		<img id="tireH_bar2" style="position: absolute; top: 358px; left: 108px; width: 60px; height: 1px; z-index: 100;" src="dot_black.gif">
+		<img id="tireH_sizeLine" style="position: absolute; top: 2px; left: 163px; width: 1px; height: 357px; z-index: 100;" src="dot_black.gif">
+		<img id="tireH_arrow1" style="position: absolute; top: 3px; left: 161px; width: 5px; height: 5px; z-index: 100;" src="sizearrowup.gif">
+		<img id="tireH_arrow2" style="position: absolute; top: 353px; left: 161px; width: 5px; height: 5px; z-index: 100;" src="sizearrowdown.gif">
+		<span id="tireH_text" style="position: absolute; top: 71.4px; left: 113px; width: 100px; height: 214.2px; z-index: 100;"><table height="100%" border="0" cellpadding="0" cellspacing="0" width="1" align="center"><tbody><tr><td valign="top" align="center"><font style="{color:black;background-color:white;}">687<small>мм</small> (27'')</font></td></tr></tbody></table></span>
+
+		<img id="tireW_bar1" style="position: absolute; top: 341px; left: 2px; width: 1px; height: 35px; z-index: 100;" src="dot_black.gif">
+		<img id="tireW_bar2" style="position: absolute; top: 341px; left: 130px; width: 1px; height: 35px; z-index: 100;" src="dot_black.gif">
+		<img id="tireW_sizeLine" style="position: absolute; top: 371px; left: 2px; width: 129px; height: 1px; z-index: 100;" src="dot_black.gif">
+		<img id="tireW_arrow1" style="position: absolute; top: 369px; left: 3px; width: 5px; height: 5px; z-index: 100;" src="sizearrowleft.gif">
+		<img id="tireW_arrow2" style="position: absolute; top: 369px; left: 125px; width: 5px; height: 5px; z-index: 100;" src="sizearrowright.gif">
+		<span id="tireW_text" style="position: absolute; top: 356px; left: 2px; width: 129px; height: 30px; z-index: 100;"><table height="100%" border="0" cellpadding="0" cellspacing="0" width="100%"><tbody><tr><td nowrap="nowrap" valign="bottom" align="center"><font style="{color:black;}">255<small>мм</small> (10'')</font></td></tr></tbody></table></span>
+	</div>
+
+	<div id="rimDiv" style="position: absolute; top: 101px; left: 107px; width: 107px; height: 239px; z-index: 10; background-color: rgb(170, 170, 255);">
+		<img id="rimBckg" style="position: absolute; top: 0pt; left: 0pt; width: 107px; height: 239px; z-index: 1;" src="rim_bckg.gif">
+
+		<img id="rimH_bar1" style="position: absolute; top: 7px; left: -38px; width: 48px; height: 1px; z-index: 100;" src="dot_black.gif">
+		<img id="rimH_bar2" style="position: absolute; top: 231px; left: -38px; width: 48px; height: 1px; z-index: 100;" src="dot_black.gif">
+		<img id="rimH_sizeLine" style="position: absolute; top: 7px; left: -34px; width: 1px; height: 225px; z-index: 100;" src="dot_black.gif">
+		<img id="rimH_arrow1" style="position: absolute; top: 8px; left: -36px; width: 5px; height: 5px; z-index: 100;" src="sizearrowup.gif">
+		<img id="rimH_arrow2" style="position: absolute; top: 226px; left: -36px; width: 5px; height: 5px; z-index: 100;" src="sizearrowdown.gif">
+		<span id="rimH_text" style="position: absolute; top: 45px; left: -84px; width: 100px; height: 135px; z-index: 100;"><table height="100%" border="0" cellpadding="0" cellspacing="0" width="1" align="center"><tbody><tr><td valign="bottom" align="center"><font style="{color:black;background-color:white;}">457<small>мм</small> (18'')</font></td></tr></tbody></table></span>
+
+		<img id="rimW_bar1" style="position: absolute; top: -76px; left: 5px; width: 1px; height: 101px; z-index: 100;" src="dot_black.gif">
+		<img id="rimW_bar2" style="position: absolute; top: -76px; left: 101px; width: 1px; height: 101px; z-index: 100;" src="dot_black.gif">
+		<img id="rimW_sizeLine" style="position: absolute; top: -72px; left: 5px; width: 97px; height: 1px; z-index: 100;" src="dot_black.gif">
+		<img id="rimW_arrow1" style="position: absolute; top: -74px; left: 6px; width: 5px; height: 5px; z-index: 100;" src="sizearrowleft.gif">
+		<img id="rimW_arrow2" style="position: absolute; top: -74px; left: 96px; width: 5px; height: 5px; z-index: 100;" src="sizearrowright.gif">
+		<span id="rimW_text" style="position: absolute; top: -87px; left: 5px; width: 97px; height: 30px; z-index: 100;"><table height="100%" border="0" cellpadding="0" cellspacing="0" width="100%"><tbody><tr><td nowrap="nowrap" valign="top" align="center"><font style="{color:black;}">203<small>мм</small> (8'')</font></td></tr></tbody></table></span>
+
+		<img id="rimLip1n" style="position: absolute; top: 2px; left: 10000px; width: 0pt; height: 0pt; z-index: 3;" src="rimliphi.gif">
+		<img id="rimLip1s" style="position: absolute; top: 2px; left: 10000px; width: 0pt; height: 0pt; z-index: 3;" src="rimliplo.gif">
+		<img id="rimLip2n" style="position: absolute; top: 0pt; left: 0pt; width: 107px; height: 25px; z-index: 3;" src="rimliphi2.gif">
+		<img id="rimLip2s" style="position: absolute; top: 214px; left: 0pt; width: 107px; height: 25px; z-index: 3;" src="rimliplo2.gif">
+		<!--tire 2 rim "down"-->
+		<img id="rimLip2TDnw" style="position: absolute; top: 0pt; left: 6px; width: 7px; height: 10px; z-index: 4;" src="dot_black.gif">
+		<img id="rimLip2TDne" style="position: absolute; top: 0pt; left: 94px; width: 7px; height: 10px; z-index: 4;" src="dot_black.gif">
+		<img id="rimLip2TDse" style="position: absolute; top: 229px; left: 94px; width: 7px; height: 10px; z-index: 4;" src="dot_black.gif">
+		<img id="rimLip2TDsw" style="position: absolute; top: 229px; left: 6px; width: 7px; height: 10px; z-index: 4;" src="dot_black.gif">
+
+		<img id="rimSpokes" style="position: absolute; top: 0pt; left: 19px; width: 25px; height: 239px; z-index: 2;" src="spokes.gif">
+		<img id="rimPad" style="position: absolute; top: 66px; left: 19px; width: 25px; height: 107px; z-index: 3;" src="pad.gif">
+
+		<!--backspace-->
+		<img id="rimBS_bar1" style="position: absolute; top: 0pt; left: 0pt; width: 1px; height: 1px; z-index: 100;" src="dot_black.gif">
+		<img id="rimBS_bar2" style="position: absolute; top: 0pt; left: 0pt; width: 1px; height: 1px; z-index: 100;" src="dot_black.gif">
+		<img id="rimBS_sizeLine" style="position: absolute; top: 0pt; left: 0pt; width: 1px; height: 1px; z-index: 100;" src="dot_black.gif">
+		<img id="rimBS_arrow1" style="position: absolute; top: 0pt; left: 0pt; width: 1px; height: 1px; z-index: 100;" src="sizearrowleft.gif">
+		<img id="rimBS_arrow2" style="position: absolute; top: 0pt; left: 0pt; width: 1px; height: 1px; z-index: 100;" src="sizearrowright.gif">
+		<span id="rimBS_text" style="position:absolute;top:0;left:0;width:1;height:1;z-index:100;"></span>
+
+		<!--offset-->
+		<img id="rimET_bar1" style="position: absolute; top: 129.5px; left: 43px; width: 1px; height: 53.5px; z-index: 100;" src="dot_black.gif">
+		<img id="rimET_bar2" style="position: absolute; top: 129.5px; left: 53.5px; width: 1px; height: 53.5px; z-index: 100;" src="dot_black.gif">
+		<img id="rimET_sizeLine" style="position: absolute; top: 178px; left: 43px; width: 40px; height: 1px; z-index: 100;" src="dot_black.gif">
+		<img id="rimET_arrow1" style="position: absolute; top: 176px; left: 54.5px; width: 5px; height: 5px; z-index: 100;" src="sizearrowleft.gif">
+		<img id="rimET_arrow2" style="position: absolute; top: 176px; left: 38px; width: 5px; height: 5px; z-index: 100;" src="sizearrowright.gif">
+		<span id="rimET_text" style="position: absolute; top: 163px; left: 43px; width: 11.5px; height: 30px; z-index: 100;"><table height="100%" border="0" cellpadding="0" cellspacing="0" width="100%"><tbody><tr><td nowrap="nowrap" valign="bottom" align="center"><font style="{color:black;}">&nbsp;&nbsp;&nbsp;&nbsp;Вылет&nbsp;20<small>мм</small> (0.8'')</font></td></tr></tbody></table></span>
+
+		<!--pad pointer-->
+		<img id="rimMP_line" style="position: absolute; top: 139.5px; left: 44px; width: 120px; height: 1px; z-index: 100;" src="dot_black.gif">
+		<img id="rimMP_arrow" style="position: absolute; top: 137.5px; left: 45px; width: 5px; height: 5px; z-index: 100;" src="sizearrowleft.gif">
+		<span id="rimMP_text" style="position: absolute; top: 124.5px; left: 44px; width: 120px; height: 30px; z-index: 100;"><table height="100%" border="0" cellpadding="0" cellspacing="0" width="100%"><tbody><tr><td nowrap="nowrap" valign="top" align="right"><font style="{color:black;}">Привалочная<br>плоскость</font></td></tr></tbody></table></span>
+
+
+
+
+	</div>
+
+	<!--rim face-->
+	<img id="rimRF_line" style="position: absolute; top: 170px; left: 10px; width: 80px; height: 1px; z-index: 100;" src="dot_black.gif">
+	<img id="rimRF_arrow" style="position: absolute; top: 168px; left: 84px; width: 5px; height: 5px; z-index: 100;" src="sizearrowright.gif">
+	<span id="rimRF_text" style="position: absolute; top: 155px; left: 10px; width: 80px; height: 30px; z-index: 100;"><table height="100%" border="0" cellpadding="0" cellspacing="0" width="100%"><tbody><tr><td nowrap="nowrap" valign="top" align="left"><font style="{color:black;}">Лицевая<br>сторона</font></td></tr></tbody></table></span>
+
+	<img id="centerLineVertical" style="position: absolute; top: 34.5px; left: 160px; width: 1px; height: 371px; z-index: 90;" src="punktir_v.gif">
+	<img id="centerLineHorisonal" style="position: absolute; top: 220px; left: 88.5px; width: 143px; height: 1px; z-index: 90;" src="punktir_h.gif">
+
+		<img id="eL" style="position: absolute; top: 0pt; left: 0pt; width: 320px; height: 440px; z-index: 1000;" src="blank.gif">
+</div>
+</center>
+
+
+</body></html>
