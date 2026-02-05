@@ -1,0 +1,102 @@
+{% extends "admin/base_site.html" %}
+{% load static %}
+
+{% block title %}Імпорт цін{% endblock %}
+
+{% block breadcrumbs %}
+<div class="breadcrumbs">
+  <a href="{% url 'admin:index' %}">Головна</a>
+  &rsaquo; Імпорт цін
+</div>
+{% endblock %}
+
+{% block content %}
+<h1>Імпорт цін з Excel</h1>
+
+<div style="max-width: 800px; margin: 20px 0;">
+  {% if result %}
+    <div style="padding: 15px; margin-bottom: 20px; border-radius: 5px;
+                {% if result.errors %}background: #fff3cd; border: 1px solid #ffc107;
+                {% else %}background: #d4edda; border: 1px solid #28a745;{% endif %}">
+      <h3 style="margin-top: 0;">Результат імпорту</h3>
+      <p><strong>Всього рядків:</strong> {{ result.total_rows }}</p>
+      <p><strong>Створено:</strong> {{ result.created }}</p>
+      <p><strong>Оновлено:</strong> {{ result.updated }}</p>
+      <p><strong>Пропущено:</strong> {{ result.skipped }}</p>
+      {% if result.errors %}
+        <p><strong>Помилки (перші 20):</strong></p>
+        <ul style="font-size: 12px; color: #856404;">
+          {% for error in result.errors %}
+            <li>{{ error }}</li>
+          {% endfor %}
+        </ul>
+      {% endif %}
+    </div>
+  {% endif %}
+
+  {% if error %}
+    <div style="padding: 15px; margin-bottom: 20px; background: #f8d7da; border: 1px solid #f5c6cb; border-radius: 5px;">
+      <strong>Помилка:</strong> {{ error }}
+    </div>
+  {% endif %}
+
+  <form method="post" enctype="multipart/form-data" style="background: #f8f9fa; padding: 20px; border-radius: 5px;">
+    {% csrf_token %}
+
+    <div style="margin-bottom: 15px;">
+      <label for="import_type" style="display: block; margin-bottom: 5px; font-weight: bold;">
+        Тип імпорту:
+      </label>
+      <select name="import_type" id="import_type" style="width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px;">
+        <option value="tires">Шини</option>
+        <option value="disks">Диски</option>
+      </select>
+    </div>
+
+    <div style="margin-bottom: 15px;">
+      <label for="excel_file" style="display: block; margin-bottom: 5px; font-weight: bold;">
+        Excel файл (.xls, .xlsx):
+      </label>
+      <input type="file" name="excel_file" id="excel_file" accept=".xls,.xlsx" required
+             style="width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px; background: white;">
+    </div>
+
+    <button type="submit" style="background: #417690; color: white; padding: 10px 20px; border: none; border-radius: 4px; cursor: pointer; font-size: 14px;">
+      Імпортувати
+    </button>
+  </form>
+
+  <div style="margin-top: 30px; display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+    <div style="padding: 15px; background: #fff; border: 1px solid #ddd; border-radius: 5px;">
+      <h3 style="margin-top: 0;">Статистика</h3>
+      <p><strong>Шин в базі:</strong> {{ tire_count }}</p>
+      <p><strong>Дисків в базі:</strong> {{ disk_count }}</p>
+      <p><strong>Брендів:</strong> {{ brand_count }}</p>
+      <p><strong>Постачальників:</strong> {{ supplier_count }}</p>
+    </div>
+
+    <div style="padding: 15px; background: #e7f3ff; border: 1px solid #b3d7ff; border-radius: 5px;">
+      <h3 style="margin-top: 0;">Як працює імпорт?</h3>
+      <ul style="margin: 0; padding-left: 20px; font-size: 13px;">
+        <li>Постачальники створюються автоматично з прайсу</li>
+        <li>Якщо в назві є "21 день" - товар буде "Під замовлення"</li>
+        <li>Націнки налаштовуються в розділі <a href="{% url 'admin:catalog_supplier_changelist' %}">Постачальники</a></li>
+        <li>Неактивні постачальники пропускаються при імпорті</li>
+      </ul>
+    </div>
+  </div>
+
+  <div style="margin-top: 20px; padding: 15px; background: #fff3cd; border: 1px solid #ffc107; border-radius: 5px;">
+    <h3 style="margin-top: 0;">Важливо!</h3>
+    <p style="margin-bottom: 0;">
+      Перед імпортом налаштуйте постачальників в розділі
+      <a href="{% url 'admin:catalog_supplier_changelist' %}" style="font-weight: bold;">Каталог → Постачальники</a>:
+    </p>
+    <ul style="margin-bottom: 0;">
+      <li>Встановіть націнку для кожного постачальника</li>
+      <li>Вкажіть які постачальники "Під замовлення"</li>
+      <li>Деактивуйте постачальників яких не хочете імпортувати</li>
+    </ul>
+  </div>
+</div>
+{% endblock %}

@@ -32,9 +32,9 @@
 
           <div class="product-detail-status">
             {% if tire.in_stock %}
-              <span class="product-status available">Є в наявності ({{ tire.stock_quantity }} шт)</span>
+              <span class="product-status available">В наявності ({{ tire.stock_quantity }} шт)</span>
             {% else %}
-              <span class="product-status pre-order">Під замовлення</span>
+              <span class="product-status pre-order">Під замовлення {% if tire.supplier %}{{ tire.supplier.delivery_days }}{% endif %}</span>
             {% endif %}
           </div>
 

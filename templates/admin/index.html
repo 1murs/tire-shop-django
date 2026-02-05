@@ -1,0 +1,27 @@
+{% extends "admin/index.html" %}
+{% load i18n %}
+
+{% block sidebar %}
+{{ block.super }}
+<div class="module" style="margin-top: 15px;">
+  <table>
+    <caption>
+      <a href="{% url 'admin:import_prices' %}" class="section">Інструменти</a>
+    </caption>
+    <tr>
+      <th scope="row">
+        <a href="{% url 'admin:import_prices' %}">Імпорт цін з Excel</a>
+      </th>
+      <td></td>
+      <td></td>
+    </tr>
+    <tr>
+      <th scope="row">
+        <a href="{% url 'admin:error_logs' %}">Логи помилок</a>
+      </th>
+      <td></td>
+      <td></td>
+    </tr>
+  </table>
+</div>
+{% endblock %}

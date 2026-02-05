@@ -1,4 +1,44 @@
 from django.db import models
+from decimal import Decimal
+
+
+class Supplier(models.Model):
+    """
+    Supplier model - постачальники товарів.
+    Визначає націнку та статус наявності.
+    """
+    name = models.CharField(max_length=200, verbose_name="Назва")
+    code = models.CharField(max_length=200, unique=True, verbose_name="Код з прайсу",
+                           help_text="Наприклад: kiev_Склад Колёс, kh_DTW Харьков (21 день)")
+
+    is_preorder = models.BooleanField(default=False, verbose_name="Під замовлення",
+                                      help_text="Якщо True - товар показується як 'Під замовлення'")
+
+    markup_percent = models.DecimalField(max_digits=5, decimal_places=2, default=0,
+                                         verbose_name="Націнка %",
+                                         help_text="Націнка на ціну постачальника")
+
+    delivery_days = models.CharField(max_length=50, default="1-3 дні",
+                                     verbose_name="Термін доставки",
+                                     help_text="Відображається на сайті")
+
+    is_active = models.BooleanField(default=True, verbose_name="Активний",
+                                    help_text="Неактивні постачальники не імпортуються")
+
+    class Meta:
+        ordering = ["name"]
+        verbose_name = "Постачальник"
+        verbose_name_plural = "Постачальники"
+
+    def __str__(self):
+        status = "Під замовлення" if self.is_preorder else "В наявності"
+        return f"{self.name} ({status}, +{self.markup_percent}%)"
+
+    def apply_markup(self, price):
+        """Застосувати націнку до ціни"""
+        if self.markup_percent:
+            return price * (1 + self.markup_percent / 100)
+        return price
 
 
 class Brand(models.Model):
@@ -51,6 +91,14 @@ class Tire(models.Model):
         Brand,
         on_delete=models.CASCADE,
         related_name="tires",
+    )
+    supplier = models.ForeignKey(
+        Supplier,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="tires",
+        verbose_name="Постачальник"
     )
 
     # Basic info
@@ -117,6 +165,14 @@ class Disk(models.Model):
 
     # Relationships
     brand = models.ForeignKey(Brand, on_delete=models.CASCADE, related_name="disks")
+    supplier = models.ForeignKey(
+        Supplier,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="disks",
+        verbose_name="Постачальник"
+    )
 
     # Basic info
     model_name = models.CharField(max_length=200)

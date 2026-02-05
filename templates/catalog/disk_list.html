@@ -132,7 +132,7 @@
                     {% if disk.in_stock %}
                       <span class="product-status available">В наявності</span>
                     {% else %}
-                      <span class="product-status pre-order">Під замовлення</span>
+                      <span class="product-status pre-order">Під замовлення {% if disk.supplier %}{{ disk.supplier.delivery_days }}{% endif %}</span>
                     {% endif %}
                     <button class="cart-add-btn" onclick="addToCart('disk', {{ disk.id }}, event)" title="Додати в кошик">
                       <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
