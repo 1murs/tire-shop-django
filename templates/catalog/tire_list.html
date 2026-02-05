@@ -121,9 +121,9 @@
                 <div class="product-card">
                   <div class="product-image">
                     {% if tire.image %}
-                      <img src="{{ tire.image.url }}" alt="{{ tire }}" />
+                      <img src="/media/{{ tire.image }}" alt="{{ tire }}" />
                     {% else %}
-                      <img src="https://picsum.photos/seed/tire{{ tire.id }}/400/400" alt="{{ tire }}" />
+                      <img src="/static/images/no-image.svg" alt="Немає фото" />
                     {% endif %}
                   </div>
                   <h3 class="product-name">{{ tire }}</h3>

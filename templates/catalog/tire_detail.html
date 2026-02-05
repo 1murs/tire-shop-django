@@ -18,9 +18,9 @@
       <div class="product-detail">
         <div class="product-detail-image">
           {% if tire.image %}
-            <img src="{{ tire.image.url }}" alt="{{ tire }}" />
+            <img src="/media/{{ tire.image }}" alt="{{ tire }}" />
           {% else %}
-            <img src="https://picsum.photos/seed/tire{{ tire.id }}/600/600" alt="{{ tire }}" />
+            <img src="/static/images/no-image.svg" alt="Немає фото" />
           {% endif %}
         </div>
 

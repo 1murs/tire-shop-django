@@ -55,9 +55,9 @@
                 <span>До сплати:</span>
                 <span id="summary-total">{{ total|floatformat:0 }} ₴</span>
               </div>
-              <button class="btn btn-accent btn-lg btn-block" onclick="alert('Оформлення замовлення в розробці')">
+              <a href="{% url 'catalog:checkout' %}" class="btn btn-accent btn-lg btn-block">
                 Оформити замовлення
-              </button>
+              </a>
               <a href="{% url 'catalog:tire_list' %}" class="btn btn-secondary btn-block">Продовжити покупки</a>
             </div>
           </div>

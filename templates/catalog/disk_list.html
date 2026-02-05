@@ -121,9 +121,9 @@
                 <div class="product-card">
                   <div class="product-image">
                     {% if disk.image %}
-                      <img src="{{ disk.image.url }}" alt="{{ disk }}" />
+                      <img src="/media/{{ disk.image }}" alt="{{ disk }}" />
                     {% else %}
-                      <img src="https://picsum.photos/seed/disk{{ disk.id }}/400/400" alt="{{ disk }}" />
+                      <img src="/static/images/no-image.svg" alt="Немає фото" />
                     {% endif %}
                   </div>
                   <h3 class="product-name">{{ disk }}</h3>

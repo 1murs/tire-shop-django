@@ -1,0 +1,423 @@
+{% extends 'base.html' %}
+
+{% block title %}
+  Оформлення замовлення - КМ/Ч 120
+{% endblock %}
+
+{% block content %}
+  <section class="section">
+    <div class="container">
+      <h1 class="section-title-centered">Оформлення замовлення</h1>
+
+      <div class="checkout-container">
+        <!-- Order Form -->
+        <div class="checkout-form-wrapper">
+          <form id="checkout-form" class="checkout-form">
+            {% csrf_token %}
+
+            <div class="form-section">
+              <h3 class="form-section-title">Контактні дані</h3>
+
+              <div class="form-group">
+                <label for="name">Ім'я *</label>
+                <input type="text" id="name" name="name" required placeholder="Ваше ім'я">
+              </div>
+
+              <div class="form-group">
+                <label for="phone">Телефон *</label>
+                <input type="tel" id="phone" name="phone" required placeholder="+38 (0XX) XXX-XX-XX">
+              </div>
+
+              <div class="form-group">
+                <label for="email">Email</label>
+                <input type="email" id="email" name="email" placeholder="your@email.com">
+                <small class="form-hint">Для отримання підтвердження замовлення</small>
+              </div>
+            </div>
+
+            <div class="form-section">
+              <h3 class="form-section-title">Доставка</h3>
+
+              <div class="form-group">
+                <label>Спосіб доставки *</label>
+                <div class="radio-group">
+                  <label class="radio-label">
+                    <input type="radio" name="delivery" value="nova_poshta" checked>
+                    <span class="radio-text">Нова Пошта</span>
+                  </label>
+                  <label class="radio-label">
+                    <input type="radio" name="delivery" value="pickup">
+                    <span class="radio-text">Самовивіз (м. Хмельницький)</span>
+                  </label>
+                  <label class="radio-label">
+                    <input type="radio" name="delivery" value="delivery">
+                    <span class="radio-text">Доставка по місту</span>
+                  </label>
+                </div>
+              </div>
+
+              <div id="delivery-fields">
+                <div class="form-group">
+                  <label for="city">Місто</label>
+                  <input type="text" id="city" name="city" placeholder="Назва міста">
+                </div>
+
+                <div class="form-group">
+                  <label for="address">Адреса / Відділення</label>
+                  <input type="text" id="address" name="address" placeholder="Номер відділення або адреса">
+                </div>
+              </div>
+            </div>
+
+            <div class="form-section">
+              <h3 class="form-section-title">Коментар</h3>
+              <div class="form-group">
+                <textarea id="comment" name="comment" rows="3" placeholder="Додаткова інформація до замовлення..."></textarea>
+              </div>
+            </div>
+
+            <button type="submit" class="btn btn-accent btn-lg btn-block" id="submit-btn">
+              Підтвердити замовлення
+            </button>
+          </form>
+        </div>
+
+        <!-- Order Summary -->
+        <div class="checkout-summary">
+          <div class="checkout-summary-box">
+            <h3>Ваше замовлення</h3>
+
+            <div class="checkout-items">
+              {% for item in items %}
+                <div class="checkout-item">
+                  <div class="checkout-item-info">
+                    <span class="checkout-item-name">{{ item.product }}</span>
+                    <span class="checkout-item-qty">{{ item.quantity }} шт</span>
+                  </div>
+                  <span class="checkout-item-price">{{ item.total|floatformat:0 }} ₴</span>
+                </div>
+              {% endfor %}
+            </div>
+
+            <div class="checkout-total">
+              <span>Разом:</span>
+              <span class="checkout-total-price">{{ total|floatformat:0 }} ₴</span>
+            </div>
+
+            <a href="{% url 'catalog:cart' %}" class="btn btn-secondary btn-block">
+              Повернутись до кошика
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Success Modal -->
+  <div id="success-modal" class="modal" style="display: none;">
+    <div class="modal-content">
+      <div class="modal-icon success">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+          <polyline points="22 4 12 14.01 9 11.01"></polyline>
+        </svg>
+      </div>
+      <h2>Замовлення оформлено!</h2>
+      <p id="success-message"></p>
+      <a href="{% url 'catalog:index' %}" class="btn btn-primary">На головну</a>
+    </div>
+  </div>
+
+  <style>
+    .checkout-container {
+      display: grid;
+      grid-template-columns: 1fr 400px;
+      gap: 2rem;
+      align-items: start;
+    }
+
+    @media (max-width: 900px) {
+      .checkout-container {
+        grid-template-columns: 1fr;
+      }
+      .checkout-summary {
+        order: -1;
+      }
+    }
+
+    .checkout-form-wrapper {
+      background: var(--bg-secondary);
+      border-radius: 12px;
+      padding: 2rem;
+    }
+
+    .form-section {
+      margin-bottom: 2rem;
+    }
+
+    .form-section-title {
+      font-size: 1.1rem;
+      font-weight: 600;
+      margin-bottom: 1rem;
+      padding-bottom: 0.5rem;
+      border-bottom: 1px solid var(--border-color);
+    }
+
+    .form-group {
+      margin-bottom: 1rem;
+    }
+
+    .form-group label {
+      display: block;
+      margin-bottom: 0.5rem;
+      font-weight: 500;
+      color: var(--text-primary);
+    }
+
+    .form-group input,
+    .form-group textarea {
+      width: 100%;
+      padding: 0.75rem 1rem;
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      font-size: 1rem;
+      background: var(--bg-primary);
+      color: var(--text-primary);
+      transition: border-color 0.2s;
+    }
+
+    .form-group input:focus,
+    .form-group textarea:focus {
+      outline: none;
+      border-color: var(--accent-color);
+    }
+
+    .form-hint {
+      display: block;
+      margin-top: 0.25rem;
+      font-size: 0.85rem;
+      color: var(--text-muted);
+    }
+
+    .radio-group {
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+    }
+
+    .radio-label {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      cursor: pointer;
+      padding: 0.75rem 1rem;
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      transition: all 0.2s;
+    }
+
+    .radio-label:hover {
+      border-color: var(--accent-color);
+    }
+
+    .radio-label input[type="radio"] {
+      width: auto;
+      accent-color: var(--accent-color);
+    }
+
+    .radio-label input[type="radio"]:checked + .radio-text {
+      color: var(--accent-color);
+      font-weight: 500;
+    }
+
+    /* Summary */
+    .checkout-summary-box {
+      background: var(--bg-secondary);
+      border-radius: 12px;
+      padding: 1.5rem;
+      position: sticky;
+      top: 100px;
+    }
+
+    .checkout-summary-box h3 {
+      margin-bottom: 1rem;
+      padding-bottom: 0.75rem;
+      border-bottom: 1px solid var(--border-color);
+    }
+
+    .checkout-items {
+      margin-bottom: 1rem;
+    }
+
+    .checkout-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      padding: 0.75rem 0;
+      border-bottom: 1px solid var(--border-color);
+      gap: 1rem;
+    }
+
+    .checkout-item:last-child {
+      border-bottom: none;
+    }
+
+    .checkout-item-info {
+      flex: 1;
+    }
+
+    .checkout-item-name {
+      display: block;
+      font-size: 0.9rem;
+      margin-bottom: 0.25rem;
+    }
+
+    .checkout-item-qty {
+      font-size: 0.85rem;
+      color: var(--text-muted);
+    }
+
+    .checkout-item-price {
+      font-weight: 600;
+      white-space: nowrap;
+    }
+
+    .checkout-total {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 1rem 0;
+      margin-bottom: 1rem;
+      border-top: 2px solid var(--border-color);
+      font-size: 1.1rem;
+      font-weight: 600;
+    }
+
+    .checkout-total-price {
+      font-size: 1.3rem;
+      color: var(--accent-color);
+    }
+
+    /* Modal */
+    .modal {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.7);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+    }
+
+    .modal-content {
+      background: var(--bg-secondary);
+      padding: 2rem;
+      border-radius: 16px;
+      text-align: center;
+      max-width: 400px;
+      width: 90%;
+    }
+
+    .modal-icon {
+      width: 80px;
+      height: 80px;
+      margin: 0 auto 1.5rem;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .modal-icon.success {
+      background: rgba(34, 197, 94, 0.1);
+      color: #22c55e;
+    }
+
+    .modal-icon svg {
+      width: 40px;
+      height: 40px;
+    }
+
+    .modal-content h2 {
+      margin-bottom: 0.5rem;
+    }
+
+    .modal-content p {
+      margin-bottom: 1.5rem;
+      color: var(--text-muted);
+    }
+
+    #submit-btn:disabled {
+      opacity: 0.7;
+      cursor: not-allowed;
+    }
+  </style>
+
+  <script>
+    const form = document.getElementById('checkout-form');
+    const submitBtn = document.getElementById('submit-btn');
+    const modal = document.getElementById('success-modal');
+    const successMessage = document.getElementById('success-message');
+    const deliveryFields = document.getElementById('delivery-fields');
+    const deliveryRadios = document.querySelectorAll('input[name="delivery"]');
+
+    // Show/hide delivery fields based on selection
+    deliveryRadios.forEach(radio => {
+      radio.addEventListener('change', function() {
+        if (this.value === 'pickup') {
+          deliveryFields.style.display = 'none';
+        } else {
+          deliveryFields.style.display = 'block';
+        }
+      });
+    });
+
+    form.addEventListener('submit', function(e) {
+      e.preventDefault();
+
+      submitBtn.disabled = true;
+      submitBtn.textContent = 'Оформлення...';
+
+      const formData = {
+        name: document.getElementById('name').value,
+        phone: document.getElementById('phone').value,
+        email: document.getElementById('email').value,
+        delivery: document.querySelector('input[name="delivery"]:checked').value,
+        city: document.getElementById('city').value,
+        address: document.getElementById('address').value,
+        comment: document.getElementById('comment').value,
+      };
+
+      fetch('{% url "catalog:checkout_submit" %}', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRFToken': '{{ csrf_token }}'
+        },
+        body: JSON.stringify(formData)
+      })
+      .then(r => r.json())
+      .then(data => {
+        if (data.success) {
+          successMessage.textContent = data.message;
+          modal.style.display = 'flex';
+          // Update cart count in header
+          const cartBadge = document.querySelector('.cart-badge');
+          if (cartBadge) cartBadge.textContent = '0';
+        } else {
+          alert(data.error || 'Помилка оформлення замовлення');
+          submitBtn.disabled = false;
+          submitBtn.textContent = 'Підтвердити замовлення';
+        }
+      })
+      .catch(err => {
+        alert('Помилка з\'єднання. Спробуйте ще раз.');
+        submitBtn.disabled = false;
+        submitBtn.textContent = 'Підтвердити замовлення';
+      });
+    });
+  </script>
+{% endblock %}
