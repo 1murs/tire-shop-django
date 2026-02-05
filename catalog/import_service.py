@@ -51,8 +51,16 @@ def check_image_exists(image_path):
     return ''
 
 
+def is_preorder_supplier(supplier_code):
+    """Check if supplier code indicates preorder (contains '21 день' or similar)"""
+    if not supplier_code:
+        return False
+    code_lower = str(supplier_code).lower()
+    return any(word in code_lower for word in ['21 день', '21 дней', '21 дні', '21 днів', 'день)', 'дней)'])
+
+
 def get_or_create_supplier(supplier_code):
-    """Get or create supplier from code like 'kiev_Склад Колёс' or 'kh_DTW Харьков (21 день)'"""
+    """Get or create supplier from code"""
     if not supplier_code or pd.isna(supplier_code) or str(supplier_code).strip() == '':
         return None
 
@@ -64,8 +72,7 @@ def get_or_create_supplier(supplier_code):
         return supplier if supplier.is_active else None
 
     # Create new supplier
-    # Detect if it's preorder (contains "день" or "дней" etc.)
-    is_preorder = any(word in supplier_code.lower() for word in ['день', 'дней', 'дні', 'днів'])
+    is_preorder = is_preorder_supplier(supplier_code)
 
     # Extract name from code
     name = supplier_code
@@ -76,12 +83,34 @@ def get_or_create_supplier(supplier_code):
         name=name,
         code=supplier_code,
         is_preorder=is_preorder,
-        markup_percent=0,  # Default, admin can change
+        markup_percent=0,
         delivery_days="10-14 днів" if is_preorder else "1-3 дні",
         is_active=True
     )
 
     return supplier
+
+
+def recalculate_prices_for_supplier(supplier):
+    """Recalculate all prices for a supplier based on markup"""
+    updated_tires = 0
+    updated_disks = 0
+
+    # Update tires
+    for tire in Tire.objects.filter(supplier=supplier):
+        if tire.purchase_price and tire.purchase_price > 0:
+            tire.price = supplier.apply_markup(tire.purchase_price)
+            tire.save(update_fields=['price'])
+            updated_tires += 1
+
+    # Update disks
+    for disk in Disk.objects.filter(supplier=supplier):
+        if disk.purchase_price and disk.purchase_price > 0:
+            disk.price = supplier.apply_markup(disk.purchase_price)
+            disk.save(update_fields=['price'])
+            updated_disks += 1
+
+    return updated_tires, updated_disks
 
 
 def import_tires(file_path):
@@ -102,7 +131,7 @@ def import_tires(file_path):
                 skipped += 1
                 continue
 
-            # Parse values - adjusted for actual Excel structure
+            # Parse values
             width = parse_int(row[2])
             profile = parse_int(row[3])
             diameter = parse_int(row[4])
@@ -124,9 +153,8 @@ def import_tires(file_path):
 
             stock_qty = parse_int(row[13]) or 0
             purchase_price = parse_decimal(row[14])  # Purchase price
-            selling_price = parse_decimal(row[15])   # Selling price
 
-            # Get supplier (column 18 for tires)
+            # Get supplier
             supplier_code = str(row[18]).strip() if pd.notna(row[18]) and len(row) > 18 else None
             supplier = get_or_create_supplier(supplier_code)
 
@@ -138,27 +166,24 @@ def import_tires(file_path):
             article = str(row[20]) if pd.notna(row[20]) and len(row) > 20 else None
             image = str(row[21]).strip() if pd.notna(row[21]) and len(row) > 21 else None
 
-            # Determine price - use selling price or apply markup to purchase price
-            price = selling_price
-            if (not price or price <= 0) and purchase_price and purchase_price > 0:
-                if supplier:
-                    price = supplier.apply_markup(purchase_price)
-                else:
-                    price = purchase_price
-
-            if not price or price <= 0:
+            # Skip if no purchase price
+            if not purchase_price or purchase_price <= 0:
                 skipped += 1
                 continue
+
+            # Calculate selling price with markup
+            if supplier and supplier.markup_percent > 0:
+                selling_price = supplier.apply_markup(purchase_price)
+            else:
+                selling_price = purchase_price
 
             # Required fields
             if not all([width, profile, diameter]):
                 skipped += 1
                 continue
 
-            # Determine in_stock based on supplier
-            in_stock = True
-            if supplier and supplier.is_preorder:
-                in_stock = False
+            # Determine in_stock - check supplier code for "21 день"
+            in_stock = not is_preorder_supplier(supplier_code)
 
             # Get or create brand
             brand, _ = Brand.objects.get_or_create(
@@ -182,7 +207,8 @@ def import_tires(file_path):
 
             if tire:
                 # Update existing
-                tire.price = price
+                tire.purchase_price = purchase_price
+                tire.price = selling_price
                 tire.stock_quantity = stock_qty
                 tire.in_stock = in_stock
                 tire.supplier = supplier
@@ -211,7 +237,8 @@ def import_tires(file_path):
                     load_index=load_index or 0,
                     speed_index=speed_index or '',
                     season=season,
-                    price=price,
+                    purchase_price=purchase_price,
+                    price=selling_price,
                     stock_quantity=stock_qty,
                     in_stock=in_stock,
                     supplier=supplier,
@@ -270,9 +297,8 @@ def import_disks(file_path):
             bolts = parse_int(row[11])
             stock_qty = parse_int(row[13]) or 0
             purchase_price = parse_decimal(row[14])  # Purchase price
-            selling_price = parse_decimal(row[15])   # Selling price
 
-            # Get supplier (column 18 for disks)
+            # Get supplier
             supplier_code = str(row[18]).strip() if pd.notna(row[18]) and len(row) > 18 else None
             supplier = get_or_create_supplier(supplier_code)
 
@@ -284,27 +310,24 @@ def import_disks(file_path):
             article = str(row[20]) if pd.notna(row[20]) and len(row) > 20 else None
             image = str(row[21]).strip() if pd.notna(row[21]) and len(row) > 21 else None
 
-            # Determine price
-            price = selling_price
-            if (not price or price <= 0) and purchase_price and purchase_price > 0:
-                if supplier:
-                    price = supplier.apply_markup(purchase_price)
-                else:
-                    price = purchase_price
-
-            if not price or price <= 0:
+            # Skip if no purchase price
+            if not purchase_price or purchase_price <= 0:
                 skipped += 1
                 continue
+
+            # Calculate selling price with markup
+            if supplier and supplier.markup_percent > 0:
+                selling_price = supplier.apply_markup(purchase_price)
+            else:
+                selling_price = purchase_price
 
             # Required fields
             if not all([width, diameter, pcd, bolts]):
                 skipped += 1
                 continue
 
-            # Determine in_stock based on supplier
-            in_stock = True
-            if supplier and supplier.is_preorder:
-                in_stock = False
+            # Determine in_stock - check supplier code for "21 день"
+            in_stock = not is_preorder_supplier(supplier_code)
 
             # Get or create brand
             brand, _ = Brand.objects.get_or_create(
@@ -329,7 +352,8 @@ def import_disks(file_path):
 
             if disk:
                 # Update existing
-                disk.price = price
+                disk.purchase_price = purchase_price
+                disk.price = selling_price
                 disk.stock_quantity = stock_qty
                 disk.in_stock = in_stock
                 disk.supplier = supplier
@@ -362,7 +386,8 @@ def import_disks(file_path):
                     dia=dia or 0,
                     color=color or '',
                     disk_type=disk_type,
-                    price=price,
+                    purchase_price=purchase_price,
+                    price=selling_price,
                     stock_quantity=stock_qty,
                     in_stock=in_stock,
                     supplier=supplier,

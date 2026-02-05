@@ -14,6 +14,14 @@
 <h1>Імпорт цін з Excel</h1>
 
 <div style="max-width: 800px; margin: 20px 0;">
+  {% if messages %}
+    {% for message in messages %}
+      <div style="padding: 15px; margin-bottom: 20px; background: #d4edda; border: 1px solid #28a745; border-radius: 5px;">
+        {{ message }}
+      </div>
+    {% endfor %}
+  {% endif %}
+
   {% if result %}
     <div style="padding: 15px; margin-bottom: 20px; border-radius: 5px;
                 {% if result.errors %}background: #fff3cd; border: 1px solid #ffc107;
@@ -76,27 +84,25 @@
     </div>
 
     <div style="padding: 15px; background: #e7f3ff; border: 1px solid #b3d7ff; border-radius: 5px;">
-      <h3 style="margin-top: 0;">Як працює імпорт?</h3>
-      <ul style="margin: 0; padding-left: 20px; font-size: 13px;">
-        <li>Постачальники створюються автоматично з прайсу</li>
-        <li>Якщо в назві є "21 день" - товар буде "Під замовлення"</li>
-        <li>Націнки налаштовуються в розділі <a href="{% url 'admin:catalog_supplier_changelist' %}">Постачальники</a></li>
-        <li>Неактивні постачальники пропускаються при імпорті</li>
-      </ul>
+      <h3 style="margin-top: 0;">Націнки</h3>
+      <p>Налаштуйте націнки в розділі <a href="{% url 'admin:catalog_supplier_changelist' %}"><strong>Постачальники</strong></a></p>
+      <a href="{% url 'admin:recalculate_all_prices' %}"
+         style="display: inline-block; margin-top: 10px; background: #28a745; color: white; padding: 10px 15px; border-radius: 4px; text-decoration: none;"
+         onclick="return confirm('Перерахувати ціни для всіх постачальників?')">
+        Перерахувати всі ціни
+      </a>
     </div>
   </div>
 
   <div style="margin-top: 20px; padding: 15px; background: #fff3cd; border: 1px solid #ffc107; border-radius: 5px;">
-    <h3 style="margin-top: 0;">Важливо!</h3>
-    <p style="margin-bottom: 0;">
-      Перед імпортом налаштуйте постачальників в розділі
-      <a href="{% url 'admin:catalog_supplier_changelist' %}" style="font-weight: bold;">Каталог → Постачальники</a>:
-    </p>
-    <ul style="margin-bottom: 0;">
-      <li>Встановіть націнку для кожного постачальника</li>
-      <li>Вкажіть які постачальники "Під замовлення"</li>
-      <li>Деактивуйте постачальників яких не хочете імпортувати</li>
-    </ul>
+    <h3 style="margin-top: 0;">Як це працює?</h3>
+    <ol style="margin-bottom: 0; padding-left: 20px;">
+      <li><strong>Імпортуйте прайс</strong> — всі товари оновляться з закупівельними цінами</li>
+      <li><strong>Налаштуйте націнки</strong> в розділі <a href="{% url 'admin:catalog_supplier_changelist' %}">Постачальники</a></li>
+      <li><strong>Натисніть "Перерахувати ціни"</strong> — продажні ціни оновляться з націнкою</li>
+    </ol>
+    <hr style="margin: 15px 0; border: none; border-top: 1px solid #ffc107;">
+    <p style="margin-bottom: 0;"><strong>Під замовлення:</strong> Постачальники з "21 день" в назві автоматично позначаються як "Під замовлення"</p>
   </div>
 </div>
 {% endblock %}

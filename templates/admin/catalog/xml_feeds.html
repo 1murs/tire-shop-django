@@ -1,0 +1,180 @@
+{% extends "admin/base_site.html" %}
+
+{% block title %}XML фіди для прайс-агрегаторів{% endblock %}
+
+{% block breadcrumbs %}
+<div class="breadcrumbs">
+  <a href="{% url 'admin:index' %}">Головна</a>
+  &rsaquo; XML фіди
+</div>
+{% endblock %}
+
+{% block content %}
+<h1>XML фіди для E-Katalog, Hotline та інших</h1>
+
+<div style="max-width: 900px; margin: 20px 0;">
+
+  <div style="padding: 20px; background: #f8f9fa; border-radius: 5px; margin-bottom: 20px;">
+    <h3 style="margin-top: 0;">Генератор посилань</h3>
+
+    <div style="margin-bottom: 15px;">
+      <label style="display: block; margin-bottom: 5px; font-weight: bold;">Тип товарів:</label>
+      <select id="type" style="width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px;">
+        <option value="all">Всі (шини + диски)</option>
+        <option value="tires">Тільки шини</option>
+        <option value="disks">Тільки диски</option>
+      </select>
+    </div>
+
+    <div style="margin-bottom: 15px;">
+      <label style="display: block; margin-bottom: 5px; font-weight: bold;">Постачальники:</label>
+
+      <input type="text" id="supplierSearch" placeholder="🔍 Введіть назву для пошуку..."
+             style="width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 4px; margin-bottom: 10px; font-size: 14px;">
+
+      <div style="margin-bottom: 10px;">
+        <button type="button" onclick="selectAllVisible()" style="padding: 6px 12px; margin-right: 5px; cursor: pointer; background: #28a745; color: white; border: none; border-radius: 4px;">
+          ✓ Обрати знайдені
+        </button>
+        <button type="button" onclick="deselectAll()" style="padding: 6px 12px; cursor: pointer; background: #dc3545; color: white; border: none; border-radius: 4px;">
+          ✗ Зняти всі
+        </button>
+        <span id="selectedCount" style="margin-left: 15px; font-weight: bold; color: #417690;">Обрано: 0</span>
+      </div>
+
+      <div id="suppliersList" style="max-height: 300px; overflow-y: auto; border: 1px solid #ccc; border-radius: 4px; padding: 10px; background: white;">
+        {% for supplier in suppliers %}
+        <label class="supplier-item" data-name="{{ supplier.name|lower }} {{ supplier.code|lower }}" style="display: flex; align-items: center; padding: 6px 8px; cursor: pointer; border-radius: 4px; margin-bottom: 2px;">
+          <input type="checkbox" class="supplier-checkbox" value="{{ supplier.id }}" onchange="updateCount()" style="margin-right: 10px; width: 18px; height: 18px;">
+          <span style="flex: 1;">{{ supplier.name }}</span>
+          <small style="color: #888;">{{ supplier.code }}</small>
+        </label>
+        {% endfor %}
+      </div>
+      <small style="color: #666; display: block; margin-top: 5px;">Якщо нічого не обрано - будуть всі постачальники</small>
+    </div>
+
+    <div style="margin-bottom: 15px;">
+      <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
+        <input type="checkbox" id="in_stock" checked style="width: 18px; height: 18px;">
+        <span>Тільки товари в наявності</span>
+      </label>
+    </div>
+
+    <button type="button" onclick="generateLink()" style="background: #417690; color: white; padding: 12px 25px; border: none; border-radius: 4px; cursor: pointer; font-size: 15px;">
+      Згенерувати посилання
+    </button>
+  </div>
+
+  <div id="resultBlock" style="display: none; padding: 20px; background: #d4edda; border: 1px solid #28a745; border-radius: 5px; margin-bottom: 20px;">
+    <h3 style="margin-top: 0;">✓ Ваше посилання:</h3>
+    <div style="background: white; padding: 10px; border-radius: 4px; margin-bottom: 10px; word-break: break-all; font-family: monospace; font-size: 13px;" id="feedUrlDisplay"></div>
+    <div style="display: flex; gap: 10px;">
+      <button onclick="copyLink()" style="background: #28a745; color: white; padding: 10px 20px; border: none; border-radius: 4px; cursor: pointer;">
+        📋 Копіювати
+      </button>
+      <a id="feedLink" href="#" target="_blank" style="background: #007bff; color: white; padding: 10px 20px; border-radius: 4px; text-decoration: none;">
+        🔗 Відкрити XML
+      </a>
+    </div>
+    <input type="hidden" id="feedUrl">
+  </div>
+
+  <div style="padding: 20px; background: #e7f3ff; border: 1px solid #b3d7ff; border-radius: 5px;">
+    <h3 style="margin-top: 0;">Базові посилання</h3>
+    <table style="width: 100%; border-collapse: collapse;">
+      <tr>
+        <td style="padding: 8px; border-bottom: 1px solid #ddd;"><strong>Всі товари:</strong></td>
+        <td style="padding: 8px; border-bottom: 1px solid #ddd; font-family: monospace; font-size: 12px;">{{ base_url }}/feed/price.xml</td>
+      </tr>
+      <tr>
+        <td style="padding: 8px; border-bottom: 1px solid #ddd;"><strong>E-Katalog формат:</strong></td>
+        <td style="padding: 8px; border-bottom: 1px solid #ddd; font-family: monospace; font-size: 12px;">{{ base_url }}/storage/e-katalog/price.xml</td>
+      </tr>
+    </table>
+  </div>
+
+</div>
+
+<style>
+  .supplier-item:hover {
+    background: #f0f0f0;
+  }
+  .supplier-item.hidden {
+    display: none !important;
+  }
+  .supplier-checkbox:checked + span {
+    font-weight: bold;
+    color: #28a745;
+  }
+</style>
+
+<script>
+// Пошук постачальників
+document.getElementById('supplierSearch').addEventListener('input', function() {
+  const search = this.value.toLowerCase();
+  const items = document.querySelectorAll('.supplier-item');
+
+  items.forEach(function(item) {
+    const name = item.getAttribute('data-name');
+    if (search === '' || name.includes(search)) {
+      item.classList.remove('hidden');
+    } else {
+      item.classList.add('hidden');
+    }
+  });
+});
+
+function selectAllVisible() {
+  const items = document.querySelectorAll('.supplier-item:not(.hidden) .supplier-checkbox');
+  items.forEach(function(cb) {
+    cb.checked = true;
+  });
+  updateCount();
+}
+
+function deselectAll() {
+  const items = document.querySelectorAll('.supplier-checkbox');
+  items.forEach(function(cb) {
+    cb.checked = false;
+  });
+  updateCount();
+}
+
+function updateCount() {
+  const checked = document.querySelectorAll('.supplier-checkbox:checked').length;
+  document.getElementById('selectedCount').textContent = 'Обрано: ' + checked;
+}
+
+function generateLink() {
+  const type = document.getElementById('type').value;
+  const checkboxes = document.querySelectorAll('.supplier-checkbox:checked');
+  const selectedSuppliers = Array.from(checkboxes).map(cb => cb.value);
+  const inStock = document.getElementById('in_stock').checked ? '1' : '0';
+
+  let url = '{{ base_url }}/feed/price.xml?';
+  const params = [];
+
+  if (type !== 'all') params.push('type=' + type);
+  if (selectedSuppliers.length > 0) params.push('suppliers=' + selectedSuppliers.join(','));
+  params.push('in_stock=' + inStock);
+
+  url += params.join('&');
+
+  document.getElementById('feedUrl').value = url;
+  document.getElementById('feedUrlDisplay').textContent = url;
+  document.getElementById('feedLink').href = url;
+  document.getElementById('resultBlock').style.display = 'block';
+
+  // Scroll to result
+  document.getElementById('resultBlock').scrollIntoView({behavior: 'smooth'});
+}
+
+function copyLink() {
+  const url = document.getElementById('feedUrl').value;
+  navigator.clipboard.writeText(url).then(function() {
+    alert('Посилання скопійовано!');
+  });
+}
+</script>
+{% endblock %}

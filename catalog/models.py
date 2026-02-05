@@ -126,7 +126,10 @@ class Tire(models.Model):
     studded = models.BooleanField(default=False)
 
     # Price and stock
-    price = models.DecimalField(max_digits=10, decimal_places=2)
+    purchase_price = models.DecimalField(max_digits=10, decimal_places=2, default=0,
+                                         verbose_name="Закупівельна ціна")
+    price = models.DecimalField(max_digits=10, decimal_places=2,
+                               verbose_name="Продажна ціна")
     in_stock = models.BooleanField(default=True)
     stock_quantity = models.PositiveIntegerField(default=0)
 
@@ -197,7 +200,10 @@ class Disk(models.Model):
     )
 
     # Price and stock
-    price = models.DecimalField(max_digits=10, decimal_places=2)
+    purchase_price = models.DecimalField(max_digits=10, decimal_places=2, default=0,
+                                         verbose_name="Закупівельна ціна")
+    price = models.DecimalField(max_digits=10, decimal_places=2,
+                               verbose_name="Продажна ціна")
     in_stock = models.BooleanField(default=True)
     stock_quantity = models.PositiveIntegerField(default=0)
 

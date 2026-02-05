@@ -1,6 +1,7 @@
 from django.contrib import admin
 from django.urls import path
-from django.shortcuts import render
+from django.shortcuts import render, redirect
+from django.contrib import messages
 from .models import Brand, Tire, Disk, Supplier
 
 
@@ -9,8 +10,9 @@ class SupplierAdmin(admin.ModelAdmin):
     list_display = ["name", "code", "is_preorder", "markup_percent", "delivery_days", "is_active", "product_count"]
     list_filter = ["is_preorder", "is_active"]
     search_fields = ["name", "code"]
-    list_editable = ["is_preorder", "markup_percent", "delivery_days", "is_active"]
+    list_editable = ["markup_percent", "delivery_days", "is_active"]
     ordering = ["name"]
+    actions = ["recalculate_prices"]
 
     fieldsets = (
         ("Основна інформація", {
@@ -18,11 +20,11 @@ class SupplierAdmin(admin.ModelAdmin):
         }),
         ("Налаштування наявності", {
             "fields": ("is_preorder", "delivery_days"),
-            "description": "Якщо 'Під замовлення' - товари показуються як 'Під замовлення 10-14 днів'"
+            "description": "Постачальники з '21 день' в назві автоматично = 'Під замовлення'"
         }),
         ("Націнка", {
             "fields": ("markup_percent",),
-            "description": "Націнка застосовується до закупівельної ціни при імпорті"
+            "description": "Націнка застосовується до закупівельної ціни. Після зміни натисніть 'Перерахувати ціни'"
         }),
     )
 
@@ -31,6 +33,24 @@ class SupplierAdmin(admin.ModelAdmin):
         disks = obj.disks.count()
         return f"{tires} шин, {disks} дисків"
     product_count.short_description = "Товарів"
+
+    @admin.action(description="Перерахувати ціни для обраних постачальників")
+    def recalculate_prices(self, request, queryset):
+        from .import_service import recalculate_prices_for_supplier
+
+        total_tires = 0
+        total_disks = 0
+
+        for supplier in queryset:
+            tires, disks = recalculate_prices_for_supplier(supplier)
+            total_tires += tires
+            total_disks += disks
+
+        self.message_user(
+            request,
+            f"Ціни перераховано: {total_tires} шин, {total_disks} дисків",
+            messages.SUCCESS
+        )
 
 
 @admin.register(Brand)
@@ -50,6 +70,7 @@ class TireAdmin(admin.ModelAdmin):
         "profile",
         "diameter",
         "season",
+        "purchase_price",
         "price",
         "in_stock",
         "supplier",
@@ -57,7 +78,7 @@ class TireAdmin(admin.ModelAdmin):
     list_filter = ["brand", "season", "in_stock", "diameter", "supplier"]
     search_fields = ["model_name", "article", "brand__name"]
     prepopulated_fields = {"slug": ("model_name",)}
-    list_editable = ["price", "in_stock"]
+    list_editable = ["price"]
     raw_id_fields = ["supplier"]
 
 
@@ -73,6 +94,7 @@ class DiskAdmin(admin.ModelAdmin):
         "pcd",
         "et",
         "disk_type",
+        "purchase_price",
         "price",
         "in_stock",
         "supplier",
@@ -80,7 +102,7 @@ class DiskAdmin(admin.ModelAdmin):
     list_filter = ["brand", "disk_type", "in_stock", "diameter", "bolts", "supplier"]
     search_fields = ["model_name", "article", "brand__name"]
     prepopulated_fields = {"slug": ("model_name",)}
-    list_editable = ["price", "in_stock"]
+    list_editable = ["price"]
     raw_id_fields = ["supplier"]
 
 
@@ -95,6 +117,8 @@ class CatalogAdminSite(admin.AdminSite):
         custom_urls = [
             path('import-prices/', self.admin_view(self.import_prices_view), name='import_prices'),
             path('error-logs/', self.admin_view(self.error_logs_view), name='error_logs'),
+            path('recalculate-all-prices/', self.admin_view(self.recalculate_all_prices_view), name='recalculate_all_prices'),
+            path('xml-feeds/', self.admin_view(self.xml_feeds_view), name='xml_feeds'),
         ]
         return custom_urls + urls
 
@@ -142,6 +166,20 @@ class CatalogAdminSite(admin.AdminSite):
 
         return render(request, 'admin/catalog/import_prices.html', context)
 
+    def recalculate_all_prices_view(self, request):
+        from .import_service import recalculate_prices_for_supplier
+
+        total_tires = 0
+        total_disks = 0
+
+        for supplier in Supplier.objects.filter(is_active=True):
+            tires, disks = recalculate_prices_for_supplier(supplier)
+            total_tires += tires
+            total_disks += disks
+
+        messages.success(request, f"Ціни перераховано: {total_tires} шин, {total_disks} дисків")
+        return redirect('admin:import_prices')
+
     def error_logs_view(self, request):
         from django.conf import settings
 
@@ -163,6 +201,15 @@ class CatalogAdminSite(admin.AdminSite):
                     logs = '\n'.join(lines[-100:])
 
         return render(request, 'admin/catalog/error_logs.html', {'logs': logs})
+
+    def xml_feeds_view(self, request):
+        base_url = request.build_absolute_uri('/').rstrip('/')
+        suppliers = Supplier.objects.filter(is_active=True).order_by('name')
+
+        return render(request, 'admin/catalog/xml_feeds.html', {
+            'base_url': base_url,
+            'suppliers': suppliers,
+        })
 
 
 # Replace default admin site

@@ -1,9 +1,13 @@
 from django.urls import path, re_path
 from . import views
+from . import feeds
 
 app_name = "catalog"
 
 urlpatterns = [
+    # XML feeds for price aggregators
+    path("storage/e-katalog/price.xml", feeds.generate_ekatalog_xml, name="ekatalog_feed"),
+    path("feed/price.xml", feeds.generate_ekatalog_xml, name="price_feed"),
     path("", views.index, name="index"),
     path("search/", views.search, name="search"),
     path("tires/", views.tire_list, name="tire_list"),
