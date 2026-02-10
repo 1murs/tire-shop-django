@@ -6,11 +6,17 @@ venv/
 __pycache__/
 *.py[cod]
 *.pyc
+*.pyo
+*.egg-info/
+dist/
+build/
 
 # Django
 *.log
 *.pot
 db.sqlite3
+db.sqlite3-journal
+staticfiles/
 
 # Media files (user uploads)
 media/
@@ -21,17 +27,27 @@ media/
 # IDE
 .vscode/
 .idea/
+*.swp
+*.swo
+*~
 
 # OS
 .DS_Store
 Thumbs.db
 
+# Project-specific (large files not for git)
+*.xls
+*.xlsx
+*.sql
+public_html/
+cloudflared.deb
 
-PROJECT_CHECKLIST.md
+# Logs
+logs/
+
+# Claude
 .claudeignore
+PROJECT_CHECKLIST.md
 
-price_shini_28-01-26.xls
-catalog.sql
-shop.sql
-public_html
-price_diski_04-02-26.xls
+# Node (if any)
+node_modules/
