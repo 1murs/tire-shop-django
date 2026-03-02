@@ -9,7 +9,7 @@
         КМ/Ч 120
       {% endblock %}
     </title>
-    <link rel="stylesheet" href="{% static 'css/styles.css' %}" />
+    <link rel="stylesheet" href="{% static 'css/styles.css' %}?v=3" />
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
   </head>
   <body>
@@ -50,6 +50,12 @@
         </nav>
 
         <div class="header-actions">
+          <button class="mobile-menu-toggle" id="mobileMenuToggle" aria-label="Меню">
+            <span class="hamburger-line"></span>
+            <span class="hamburger-line"></span>
+            <span class="hamburger-line"></span>
+          </button>
+
           <div class="search-wrapper">
             <button class="icon-btn search-toggle" aria-label="Пошук" onclick="toggleSearch()">
               <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -93,6 +99,35 @@
         </div>
       </div>
     </header>
+
+    <!-- Mobile Menu Overlay -->
+    <div class="mobile-menu-overlay" id="mobileMenuOverlay">
+      <div class="mobile-menu">
+        <div class="mobile-menu-header">
+          <a href="{% url 'catalog:index' %}" class="logo">
+            <div class="logo-container">
+              <span class="logo-top">КМ/Ч</span>
+              <span class="logo-bottom">120</span>
+            </div>
+          </a>
+          <button class="mobile-menu-close" id="mobileMenuClose" aria-label="Закрити">&times;</button>
+        </div>
+        <nav class="mobile-nav">
+          <a href="{% url 'catalog:tire_list' %}" class="mobile-nav-link">Шини</a>
+          <a href="{% url 'catalog:disk_list' %}" class="mobile-nav-link">Диски</a>
+          <a href="{% url 'catalog:calculator' %}" class="mobile-nav-link mobile-nav-accent">Калькулятор</a>
+          <a href="{% url 'catalog:pre_order' %}" class="mobile-nav-link">Попереднє замовлення</a>
+          <a href="{% url 'catalog:delivery' %}" class="mobile-nav-link">Оплата і доставка</a>
+          <a href="{% url 'catalog:contacts' %}" class="mobile-nav-link">Контакти</a>
+          <a href="{% url 'catalog:about' %}" class="mobile-nav-link">Про нас</a>
+        </nav>
+        <div class="mobile-menu-footer">
+          <a href="tel:+380963870223" class="mobile-phone">+38 (096) 38-70-223</a>
+          <a href="tel:+380508572399" class="mobile-phone">+38 (050) 857-23-99</a>
+          <span class="mobile-hours">Пн-Пт 9:00-18:00</span>
+        </div>
+      </div>
+    </div>
 
     <!-- Main Content -->
     {% block content %}
@@ -420,6 +455,28 @@
           submitBtn.disabled = false;
           submitBtn.textContent = 'Надіслати';
         });
+      });
+      // Mobile Menu
+      const mobileToggle = document.getElementById('mobileMenuToggle');
+      const mobileOverlay = document.getElementById('mobileMenuOverlay');
+      const mobileClose = document.getElementById('mobileMenuClose');
+
+      function openMobileMenu() {
+        mobileOverlay.classList.add('active');
+        mobileToggle.classList.add('active');
+        document.body.style.overflow = 'hidden';
+      }
+
+      function closeMobileMenu() {
+        mobileOverlay.classList.remove('active');
+        mobileToggle.classList.remove('active');
+        document.body.style.overflow = '';
+      }
+
+      mobileToggle.addEventListener('click', openMobileMenu);
+      mobileClose.addEventListener('click', closeMobileMenu);
+      mobileOverlay.addEventListener('click', function(e) {
+        if (e.target === this) closeMobileMenu();
       });
     </script>
   </body>

@@ -34,7 +34,10 @@ def index(request):
     """
     from .models import Brand
 
-    featured_tires = Tire.objects.filter(in_stock=True)[:4]
+    featured_tires = Tire.objects.filter(is_featured=True)[:8]
+    if not featured_tires.exists():
+        featured_tires = Tire.objects.filter(in_stock=True).order_by('?')[:8]
+    featured_disks = Disk.objects.filter(is_featured=True)[:8]
 
     # Filter options for tires (use set() for unique values)
     all_tires = Tire.objects.all()
@@ -58,6 +61,7 @@ def index(request):
 
     context = {
         "featured_tires": featured_tires,
+        "featured_disks": featured_disks,
         "tire_filters": tire_filters,
         "disk_filters": disk_filters,
     }
@@ -76,6 +80,8 @@ def tire_list(request):
     brand = request.GET.get("brand")
     load_index = request.GET.get("load_index")
     speed_index = request.GET.get("speed_index")
+    price_min = request.GET.get("price_min")
+    price_max = request.GET.get("price_max")
 
     # Apply filters
     if diameter:
@@ -92,6 +98,10 @@ def tire_list(request):
         tires_qs = tires_qs.filter(load_index=load_index)
     if speed_index:
         tires_qs = tires_qs.filter(speed_index=speed_index)
+    if price_min:
+        tires_qs = tires_qs.filter(price__gte=price_min)
+    if price_max:
+        tires_qs = tires_qs.filter(price__lte=price_max)
 
     # Get unique values for filter dropdowns (use set() for SQLite compatibility)
     from .models import Brand
@@ -115,6 +125,8 @@ def tire_list(request):
         "brand": brand or "",
         "load_index": load_index or "",
         "speed_index": speed_index or "",
+        "price_min": price_min or "",
+        "price_max": price_max or "",
     }
 
     paginator = Paginator(tires_qs, 15)
@@ -141,6 +153,8 @@ def disk_list(request):
     et = request.GET.get("et")
     disk_type = request.GET.get("type")
     brand = request.GET.get("brand")
+    price_min = request.GET.get("price_min")
+    price_max = request.GET.get("price_max")
 
     # Apply filters
     if diameter:
@@ -157,6 +171,10 @@ def disk_list(request):
         disks_qs = disks_qs.filter(disk_type=disk_type)
     if brand:
         disks_qs = disks_qs.filter(brand__slug=brand)
+    if price_min:
+        disks_qs = disks_qs.filter(price__gte=price_min)
+    if price_max:
+        disks_qs = disks_qs.filter(price__lte=price_max)
 
     # Get unique values for filter dropdowns (use set() for SQLite compatibility)
     from .models import Brand
@@ -180,6 +198,8 @@ def disk_list(request):
         "et": et or "",
         "type": disk_type or "",
         "brand": brand or "",
+        "price_min": price_min or "",
+        "price_max": price_max or "",
     }
 
     paginator = Paginator(disks_qs, 15)
