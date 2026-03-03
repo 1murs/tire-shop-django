@@ -9,7 +9,7 @@
         КМ/Ч 120
       {% endblock %}
     </title>
-    <link rel="stylesheet" href="{% static 'css/styles.css' %}?v=3" />
+    <link rel="stylesheet" href="{% static 'css/styles.css' %}?v=5" />
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
   </head>
   <body>
@@ -224,6 +224,19 @@
           </div>
           <button type="submit" class="modal-submit">Надіслати</button>
         </form>
+      </div>
+    </div>
+
+    <!-- Floating Help Widget -->
+    <div class="help-widget" id="helpWidget" onclick="openCallbackModal()">
+      <div class="help-widget-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="24" height="24">
+          <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+        </svg>
+      </div>
+      <div class="help-widget-text">
+        <span class="help-widget-title">Потрібна допомога?</span>
+        <span class="help-widget-sub">Залиште повідомлення</span>
       </div>
     </div>
 

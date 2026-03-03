@@ -80,6 +80,7 @@ def tire_list(request):
     brand = request.GET.get("brand")
     load_index = request.GET.get("load_index")
     speed_index = request.GET.get("speed_index")
+    studded = request.GET.get("studded")
     price_min = request.GET.get("price_min")
     price_max = request.GET.get("price_max")
 
@@ -98,6 +99,8 @@ def tire_list(request):
         tires_qs = tires_qs.filter(load_index=load_index)
     if speed_index:
         tires_qs = tires_qs.filter(speed_index=speed_index)
+    if studded:
+        tires_qs = tires_qs.filter(studded=studded)
     if price_min:
         tires_qs = tires_qs.filter(price__gte=price_min)
     if price_max:
@@ -114,6 +117,7 @@ def tire_list(request):
         "brands": Brand.objects.filter(tires__isnull=False).distinct().order_by("name"),
         "load_indices": sorted(set(all_tires.values_list("load_index", flat=True))),
         "speed_indices": sorted(set(all_tires.values_list("speed_index", flat=True))),
+        "studded_choices": Tire.STUDDED_CHOICES,
     }
 
     # Current filter values for template
@@ -125,6 +129,7 @@ def tire_list(request):
         "brand": brand or "",
         "load_index": load_index or "",
         "speed_index": speed_index or "",
+        "studded": studded or "",
         "price_min": price_min or "",
         "price_max": price_max or "",
     }

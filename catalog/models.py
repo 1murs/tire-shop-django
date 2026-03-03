@@ -70,9 +70,9 @@ class Tire(models.Model):
     SEASON_ALL = "allseason"
 
     SEASON_CHOICES = [
-        (SEASON_SUMMER, "Summer"),
-        (SEASON_WINTER, "Winter"),
-        (SEASON_ALL, "All Season"),
+        (SEASON_SUMMER, "Літні"),
+        (SEASON_WINTER, "Зимові"),
+        (SEASON_ALL, "Всесезонні"),
     ]
 
     VEHICLE_PASSENGER = "passenger"
@@ -123,7 +123,22 @@ class Tire(models.Model):
         choices=VEHICLE_CHOICES,
         default=VEHICLE_PASSENGER,
     )
-    studded = models.BooleanField(default=False)
+    STUDDED_NONE = "none"
+    STUDDED_STUDDABLE = "studdable"
+    STUDDED_STUDDED = "studded"
+
+    STUDDED_CHOICES = [
+        (STUDDED_NONE, "Не шип"),
+        (STUDDED_STUDDABLE, "Під шип"),
+        (STUDDED_STUDDED, "Шип"),
+    ]
+
+    studded = models.CharField(
+        max_length=20,
+        choices=STUDDED_CHOICES,
+        default=STUDDED_NONE,
+        verbose_name="Шипування",
+    )
 
     # Price and stock
     purchase_price = models.DecimalField(max_digits=10, decimal_places=2, default=0,
@@ -136,6 +151,8 @@ class Tire(models.Model):
     # Meta info
     article = models.CharField(max_length=50, unique=True)
     image = models.ImageField(upload_to="tires/", blank=True, null=True)
+    is_featured = models.BooleanField(default=False, verbose_name="Рекомендований",
+                                       help_text="Показувати на головній сторінці")
 
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -161,9 +178,9 @@ class Disk(models.Model):
     TYPE_FORGED = "forged"
 
     TYPE_CHOICES = [
-        (TYPE_ALLOY, "Alloy"),
-        (TYPE_STEEL, "Steel"),
-        (TYPE_FORGED, "Forged"),
+        (TYPE_ALLOY, "Литі"),
+        (TYPE_STEEL, "Штамповані"),
+        (TYPE_FORGED, "Ковані"),
     ]
 
     # Relationships
@@ -210,6 +227,8 @@ class Disk(models.Model):
     # Meta info
     article = models.CharField(max_length=50, unique=True)
     image = models.ImageField(upload_to="disks/", blank=True, null=True)
+    is_featured = models.BooleanField(default=False, verbose_name="Рекомендований",
+                                       help_text="Показувати на головній сторінці")
 
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)

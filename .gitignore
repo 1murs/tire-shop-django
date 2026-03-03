@@ -33,6 +33,7 @@ media/
 
 # OS
 .DS_Store
+._*
 Thumbs.db
 
 # Project-specific (large files not for git)

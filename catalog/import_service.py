@@ -113,9 +113,10 @@ def recalculate_prices_for_supplier(supplier):
     return updated_tires, updated_disks
 
 
-def import_tires(file_path):
+def import_tires(file_path, progress_callback=None):
     """Import tires from Excel file"""
     df = pd.read_excel(file_path, header=None)
+    total = len(df)
 
     created = 0
     updated = 0
@@ -150,6 +151,15 @@ def import_tires(file_path):
                 season = 'all_season'
             else:
                 season = 'summer'
+
+            # Parse studded info (column 9)
+            studded_raw = str(row[9]).strip().lower() if pd.notna(row[9]) else ''
+            if 'под шип' in studded_raw or 'під шип' in studded_raw:
+                studded = 'studdable'
+            elif studded_raw == 'шип' or 'шипован' in studded_raw:
+                studded = 'studded'
+            else:
+                studded = 'none'
 
             stock_qty = parse_int(row[13]) or 0
             purchase_price = parse_decimal(row[14])  # Purchase price
@@ -212,6 +222,7 @@ def import_tires(file_path):
                 tire.stock_quantity = stock_qty
                 tire.in_stock = in_stock
                 tire.supplier = supplier
+                tire.studded = studded
                 image_path = check_image_exists(image)
                 if image_path:
                     tire.image = image_path
@@ -237,6 +248,7 @@ def import_tires(file_path):
                     load_index=load_index or 0,
                     speed_index=speed_index or '',
                     season=season,
+                    studded=studded,
                     purchase_price=purchase_price,
                     price=selling_price,
                     stock_quantity=stock_qty,
@@ -249,6 +261,16 @@ def import_tires(file_path):
         except Exception as e:
             errors.append(f"Row {idx}: {str(e)}")
 
+        if progress_callback:
+            progress_callback({
+                'current': idx + 1,
+                'total': total,
+                'created': created,
+                'updated': updated,
+                'skipped': skipped,
+                'errors_count': len(errors),
+            })
+
     return {
         'created': created,
         'updated': updated,
@@ -258,9 +280,10 @@ def import_tires(file_path):
     }
 
 
-def import_disks(file_path):
+def import_disks(file_path, progress_callback=None):
     """Import disks from Excel file"""
     df = pd.read_excel(file_path, header=None)
+    total = len(df)
 
     created = 0
     updated = 0
@@ -397,6 +420,16 @@ def import_disks(file_path):
 
         except Exception as e:
             errors.append(f"Row {idx}: {str(e)}")
+
+        if progress_callback:
+            progress_callback({
+                'current': idx + 1,
+                'total': total,
+                'created': created,
+                'updated': updated,
+                'skipped': skipped,
+                'errors_count': len(errors),
+            })
 
     return {
         'created': created,

@@ -26,7 +26,6 @@
                 <input type="number" name="price_min" placeholder="від" min="0" value="{{ current_filters.price_min }}" class="price-input">
                 <span class="price-dash">&ndash;</span>
                 <input type="number" name="price_max" placeholder="до" min="0" value="{{ current_filters.price_max }}" class="price-input">
-                <button type="submit" class="price-ok-btn">OK</button>
               </div>
             </div>
 
@@ -72,6 +71,18 @@
                 <option value="">Всі</option>
                 {% for value, label in filter_options.seasons %}
                   <option value="{{ value }}" {% if current_filters.season == value %}selected{% endif %}>
+                    {{ label }}
+                  </option>
+                {% endfor %}
+              </select>
+            </div>
+
+            <div class="filter-section">
+              <label class="filter-label" for="studded">Шипування</label>
+              <select name="studded" id="studded" class="filter-select">
+                <option value="">Всі</option>
+                {% for value, label in filter_options.studded_choices %}
+                  <option value="{{ value }}" {% if current_filters.studded == value %}selected{% endif %}>
                     {{ label }}
                   </option>
                 {% endfor %}
@@ -166,13 +177,13 @@
           {% if tires.has_other_pages %}
             <div class="pagination">
               {% if tires.has_previous %}
-                <a href="?{% if current_filters.diameter %}diameter={{ current_filters.diameter }}&{% endif %}{% if current_filters.width %}width={{ current_filters.width }}&{% endif %}{% if current_filters.profile %}profile={{ current_filters.profile }}&{% endif %}{% if current_filters.season %}season={{ current_filters.season }}&{% endif %}{% if current_filters.brand %}brand={{ current_filters.brand }}&{% endif %}{% if current_filters.load_index %}load_index={{ current_filters.load_index }}&{% endif %}{% if current_filters.speed_index %}speed_index={{ current_filters.speed_index }}&{% endif %}{% if current_filters.price_min %}price_min={{ current_filters.price_min }}&{% endif %}{% if current_filters.price_max %}price_max={{ current_filters.price_max }}&{% endif %}page=1" class="pagination-btn" title="Перша сторінка">
+                <a href="?{% if current_filters.diameter %}diameter={{ current_filters.diameter }}&{% endif %}{% if current_filters.width %}width={{ current_filters.width }}&{% endif %}{% if current_filters.profile %}profile={{ current_filters.profile }}&{% endif %}{% if current_filters.season %}season={{ current_filters.season }}&{% endif %}{% if current_filters.brand %}brand={{ current_filters.brand }}&{% endif %}{% if current_filters.load_index %}load_index={{ current_filters.load_index }}&{% endif %}{% if current_filters.speed_index %}speed_index={{ current_filters.speed_index }}&{% endif %}{% if current_filters.studded %}studded={{ current_filters.studded }}&{% endif %}{% if current_filters.price_min %}price_min={{ current_filters.price_min }}&{% endif %}{% if current_filters.price_max %}price_max={{ current_filters.price_max }}&{% endif %}page=1" class="pagination-btn" title="Перша сторінка">
                   <svg class="icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                     <polyline points="11 17 6 12 11 7"></polyline>
                     <polyline points="18 17 13 12 18 7"></polyline>
                   </svg>
                 </a>
-                <a href="?{% if current_filters.diameter %}diameter={{ current_filters.diameter }}&{% endif %}{% if current_filters.width %}width={{ current_filters.width }}&{% endif %}{% if current_filters.profile %}profile={{ current_filters.profile }}&{% endif %}{% if current_filters.season %}season={{ current_filters.season }}&{% endif %}{% if current_filters.brand %}brand={{ current_filters.brand }}&{% endif %}{% if current_filters.load_index %}load_index={{ current_filters.load_index }}&{% endif %}{% if current_filters.speed_index %}speed_index={{ current_filters.speed_index }}&{% endif %}{% if current_filters.price_min %}price_min={{ current_filters.price_min }}&{% endif %}{% if current_filters.price_max %}price_max={{ current_filters.price_max }}&{% endif %}page={{ tires.previous_page_number }}" class="pagination-btn" title="Попередня">
+                <a href="?{% if current_filters.diameter %}diameter={{ current_filters.diameter }}&{% endif %}{% if current_filters.width %}width={{ current_filters.width }}&{% endif %}{% if current_filters.profile %}profile={{ current_filters.profile }}&{% endif %}{% if current_filters.season %}season={{ current_filters.season }}&{% endif %}{% if current_filters.brand %}brand={{ current_filters.brand }}&{% endif %}{% if current_filters.load_index %}load_index={{ current_filters.load_index }}&{% endif %}{% if current_filters.speed_index %}speed_index={{ current_filters.speed_index }}&{% endif %}{% if current_filters.studded %}studded={{ current_filters.studded }}&{% endif %}{% if current_filters.price_min %}price_min={{ current_filters.price_min }}&{% endif %}{% if current_filters.price_max %}price_max={{ current_filters.price_max }}&{% endif %}page={{ tires.previous_page_number }}" class="pagination-btn" title="Попередня">
                   <svg class="icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                     <polyline points="15 18 9 12 15 6"></polyline>
                   </svg>
@@ -183,21 +194,21 @@
                 {% if tires.number == num %}
                   <span class="pagination-num active">{{ num }}</span>
                 {% elif num > tires.number|add:'-3' and num < tires.number|add:'3' %}
-                  <a href="?{% if current_filters.diameter %}diameter={{ current_filters.diameter }}&{% endif %}{% if current_filters.width %}width={{ current_filters.width }}&{% endif %}{% if current_filters.profile %}profile={{ current_filters.profile }}&{% endif %}{% if current_filters.season %}season={{ current_filters.season }}&{% endif %}{% if current_filters.brand %}brand={{ current_filters.brand }}&{% endif %}{% if current_filters.load_index %}load_index={{ current_filters.load_index }}&{% endif %}{% if current_filters.speed_index %}speed_index={{ current_filters.speed_index }}&{% endif %}{% if current_filters.price_min %}price_min={{ current_filters.price_min }}&{% endif %}{% if current_filters.price_max %}price_max={{ current_filters.price_max }}&{% endif %}page={{ num }}" class="pagination-num">{{ num }}</a>
+                  <a href="?{% if current_filters.diameter %}diameter={{ current_filters.diameter }}&{% endif %}{% if current_filters.width %}width={{ current_filters.width }}&{% endif %}{% if current_filters.profile %}profile={{ current_filters.profile }}&{% endif %}{% if current_filters.season %}season={{ current_filters.season }}&{% endif %}{% if current_filters.brand %}brand={{ current_filters.brand }}&{% endif %}{% if current_filters.load_index %}load_index={{ current_filters.load_index }}&{% endif %}{% if current_filters.speed_index %}speed_index={{ current_filters.speed_index }}&{% endif %}{% if current_filters.studded %}studded={{ current_filters.studded }}&{% endif %}{% if current_filters.price_min %}price_min={{ current_filters.price_min }}&{% endif %}{% if current_filters.price_max %}price_max={{ current_filters.price_max }}&{% endif %}page={{ num }}" class="pagination-num">{{ num }}</a>
                 {% elif num == 1 or num == tires.paginator.num_pages %}
-                  <a href="?{% if current_filters.diameter %}diameter={{ current_filters.diameter }}&{% endif %}{% if current_filters.width %}width={{ current_filters.width }}&{% endif %}{% if current_filters.profile %}profile={{ current_filters.profile }}&{% endif %}{% if current_filters.season %}season={{ current_filters.season }}&{% endif %}{% if current_filters.brand %}brand={{ current_filters.brand }}&{% endif %}{% if current_filters.load_index %}load_index={{ current_filters.load_index }}&{% endif %}{% if current_filters.speed_index %}speed_index={{ current_filters.speed_index }}&{% endif %}{% if current_filters.price_min %}price_min={{ current_filters.price_min }}&{% endif %}{% if current_filters.price_max %}price_max={{ current_filters.price_max }}&{% endif %}page={{ num }}" class="pagination-num">{{ num }}</a>
+                  <a href="?{% if current_filters.diameter %}diameter={{ current_filters.diameter }}&{% endif %}{% if current_filters.width %}width={{ current_filters.width }}&{% endif %}{% if current_filters.profile %}profile={{ current_filters.profile }}&{% endif %}{% if current_filters.season %}season={{ current_filters.season }}&{% endif %}{% if current_filters.brand %}brand={{ current_filters.brand }}&{% endif %}{% if current_filters.load_index %}load_index={{ current_filters.load_index }}&{% endif %}{% if current_filters.speed_index %}speed_index={{ current_filters.speed_index }}&{% endif %}{% if current_filters.studded %}studded={{ current_filters.studded }}&{% endif %}{% if current_filters.price_min %}price_min={{ current_filters.price_min }}&{% endif %}{% if current_filters.price_max %}price_max={{ current_filters.price_max }}&{% endif %}page={{ num }}" class="pagination-num">{{ num }}</a>
                 {% elif num == tires.number|add:'-3' or num == tires.number|add:'3' %}
                   <span class="pagination-dots">...</span>
                 {% endif %}
               {% endfor %}
 
               {% if tires.has_next %}
-                <a href="?{% if current_filters.diameter %}diameter={{ current_filters.diameter }}&{% endif %}{% if current_filters.width %}width={{ current_filters.width }}&{% endif %}{% if current_filters.profile %}profile={{ current_filters.profile }}&{% endif %}{% if current_filters.season %}season={{ current_filters.season }}&{% endif %}{% if current_filters.brand %}brand={{ current_filters.brand }}&{% endif %}{% if current_filters.load_index %}load_index={{ current_filters.load_index }}&{% endif %}{% if current_filters.speed_index %}speed_index={{ current_filters.speed_index }}&{% endif %}{% if current_filters.price_min %}price_min={{ current_filters.price_min }}&{% endif %}{% if current_filters.price_max %}price_max={{ current_filters.price_max }}&{% endif %}page={{ tires.next_page_number }}" class="pagination-btn" title="Наступна">
+                <a href="?{% if current_filters.diameter %}diameter={{ current_filters.diameter }}&{% endif %}{% if current_filters.width %}width={{ current_filters.width }}&{% endif %}{% if current_filters.profile %}profile={{ current_filters.profile }}&{% endif %}{% if current_filters.season %}season={{ current_filters.season }}&{% endif %}{% if current_filters.brand %}brand={{ current_filters.brand }}&{% endif %}{% if current_filters.load_index %}load_index={{ current_filters.load_index }}&{% endif %}{% if current_filters.speed_index %}speed_index={{ current_filters.speed_index }}&{% endif %}{% if current_filters.studded %}studded={{ current_filters.studded }}&{% endif %}{% if current_filters.price_min %}price_min={{ current_filters.price_min }}&{% endif %}{% if current_filters.price_max %}price_max={{ current_filters.price_max }}&{% endif %}page={{ tires.next_page_number }}" class="pagination-btn" title="Наступна">
                   <svg class="icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                     <polyline points="9 18 15 12 9 6"></polyline>
                   </svg>
                 </a>
-                <a href="?{% if current_filters.diameter %}diameter={{ current_filters.diameter }}&{% endif %}{% if current_filters.width %}width={{ current_filters.width }}&{% endif %}{% if current_filters.profile %}profile={{ current_filters.profile }}&{% endif %}{% if current_filters.season %}season={{ current_filters.season }}&{% endif %}{% if current_filters.brand %}brand={{ current_filters.brand }}&{% endif %}{% if current_filters.load_index %}load_index={{ current_filters.load_index }}&{% endif %}{% if current_filters.speed_index %}speed_index={{ current_filters.speed_index }}&{% endif %}{% if current_filters.price_min %}price_min={{ current_filters.price_min }}&{% endif %}{% if current_filters.price_max %}price_max={{ current_filters.price_max }}&{% endif %}page={{ tires.paginator.num_pages }}" class="pagination-btn" title="Остання сторінка">
+                <a href="?{% if current_filters.diameter %}diameter={{ current_filters.diameter }}&{% endif %}{% if current_filters.width %}width={{ current_filters.width }}&{% endif %}{% if current_filters.profile %}profile={{ current_filters.profile }}&{% endif %}{% if current_filters.season %}season={{ current_filters.season }}&{% endif %}{% if current_filters.brand %}brand={{ current_filters.brand }}&{% endif %}{% if current_filters.load_index %}load_index={{ current_filters.load_index }}&{% endif %}{% if current_filters.speed_index %}speed_index={{ current_filters.speed_index }}&{% endif %}{% if current_filters.studded %}studded={{ current_filters.studded }}&{% endif %}{% if current_filters.price_min %}price_min={{ current_filters.price_min }}&{% endif %}{% if current_filters.price_max %}price_max={{ current_filters.price_max }}&{% endif %}page={{ tires.paginator.num_pages }}" class="pagination-btn" title="Остання сторінка">
                   <svg class="icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                     <polyline points="13 17 18 12 13 7"></polyline>
                     <polyline points="6 17 11 12 6 7"></polyline>

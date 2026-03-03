@@ -2782,3 +2782,93 @@ button {
     align-items: center;
     gap: 0.5rem;
 }
+
+/* ─── Floating Help Widget ────────────────────────────── */
+.help-widget {
+    position: fixed;
+    bottom: 2rem;
+    right: 0;
+    display: flex;
+    align-items: center;
+    gap: 0;
+    cursor: pointer;
+    z-index: 900;
+    transform: translateX(calc(100% - 52px));
+    transition: transform 0.3s ease;
+}
+
+.help-widget:hover {
+    transform: translateX(0);
+}
+
+.help-widget-icon {
+    flex-shrink: 0;
+    width: 52px;
+    height: 52px;
+    background: var(--primary);
+    border-radius: 26px 0 0 26px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #fff;
+    box-shadow: var(--shadow-md);
+    transition: background 0.2s;
+}
+
+.help-widget:hover .help-widget-icon {
+    background: var(--primary-light);
+}
+
+.help-widget-text {
+    display: flex;
+    flex-direction: column;
+    padding: 0.5rem 1rem 0.5rem 0.75rem;
+    background: var(--primary);
+    color: #fff;
+    border-radius: 0 0 0 0;
+    box-shadow: var(--shadow-md);
+    white-space: nowrap;
+    transition: background 0.2s;
+}
+
+.help-widget:hover .help-widget-text {
+    background: var(--primary-light);
+}
+
+.help-widget-title {
+    font-size: 0.875rem;
+    font-weight: 600;
+    line-height: 1.3;
+}
+
+.help-widget-sub {
+    font-size: 0.75rem;
+    opacity: 0.8;
+    line-height: 1.3;
+}
+
+@media (max-width: 768px) {
+    .help-widget {
+        bottom: 1rem;
+        transform: translateX(calc(100% - 44px));
+    }
+
+    .help-widget-icon {
+        width: 44px;
+        height: 44px;
+        border-radius: 22px 0 0 22px;
+    }
+
+    .help-widget-icon svg {
+        width: 20px;
+        height: 20px;
+    }
+
+    .help-widget-title {
+        font-size: 0.8125rem;
+    }
+
+    .help-widget-sub {
+        font-size: 0.6875rem;
+    }
+}

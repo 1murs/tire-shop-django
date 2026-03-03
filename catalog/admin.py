@@ -2,7 +2,14 @@ from django.contrib import admin
 from django.urls import path
 from django.shortcuts import render, redirect
 from django.contrib import messages
+from django.http import JsonResponse
 from .models import Brand, Tire, Disk, Supplier
+
+import json
+import uuid
+import threading
+import tempfile
+import os
 
 
 @admin.register(Supplier)
@@ -70,15 +77,17 @@ class TireAdmin(admin.ModelAdmin):
         "profile",
         "diameter",
         "season",
+        "studded",
         "purchase_price",
         "price",
         "in_stock",
+        "is_featured",
         "supplier",
     ]
-    list_filter = ["brand", "season", "in_stock", "diameter", "supplier"]
+    list_filter = ["brand", "season", "studded", "in_stock", "is_featured", "diameter", "supplier"]
     search_fields = ["model_name", "article", "brand__name"]
     prepopulated_fields = {"slug": ("model_name",)}
-    list_editable = ["price"]
+    list_editable = ["price", "is_featured", "studded"]
     raw_id_fields = ["supplier"]
 
 
@@ -97,12 +106,13 @@ class DiskAdmin(admin.ModelAdmin):
         "purchase_price",
         "price",
         "in_stock",
+        "is_featured",
         "supplier",
     ]
-    list_filter = ["brand", "disk_type", "in_stock", "diameter", "bolts", "supplier"]
+    list_filter = ["brand", "disk_type", "in_stock", "is_featured", "diameter", "bolts", "supplier"]
     search_fields = ["model_name", "article", "brand__name"]
     prepopulated_fields = {"slug": ("model_name",)}
-    list_editable = ["price"]
+    list_editable = ["price", "is_featured"]
     raw_id_fields = ["supplier"]
 
 
@@ -112,59 +122,184 @@ class CatalogAdminSite(admin.AdminSite):
     site_title = "КМ/Ч 120 Admin"
     index_title = "Панель управління"
 
+    ACTIVE_IMPORT_FILE = '/tmp/import_active_task.txt'
+
+    def _get_active_task_id(self):
+        try:
+            with open(self.ACTIVE_IMPORT_FILE, 'r') as f:
+                task_id = f.read().strip()
+            # Verify progress file still exists (import is actually running)
+            if task_id and os.path.exists(self._get_progress_file(task_id)):
+                return task_id
+            # Stale lock file — clean up
+            try:
+                os.unlink(self.ACTIVE_IMPORT_FILE)
+            except OSError:
+                pass
+        except FileNotFoundError:
+            pass
+        return None
+
+    def _set_active_task_id(self, task_id):
+        with open(self.ACTIVE_IMPORT_FILE, 'w') as f:
+            f.write(task_id)
+
+    def _clear_active_task_id(self):
+        try:
+            os.unlink(self.ACTIVE_IMPORT_FILE)
+        except OSError:
+            pass
+
     def get_urls(self):
         urls = super().get_urls()
         custom_urls = [
             path('import-prices/', self.admin_view(self.import_prices_view), name='import_prices'),
+            path('import-prices/start/', self.admin_view(self.start_import_view), name='start_import'),
+            path('import-progress/<str:task_id>/', self.admin_view(self.import_progress_view), name='import_progress'),
             path('error-logs/', self.admin_view(self.error_logs_view), name='error_logs'),
             path('recalculate-all-prices/', self.admin_view(self.recalculate_all_prices_view), name='recalculate_all_prices'),
             path('xml-feeds/', self.admin_view(self.xml_feeds_view), name='xml_feeds'),
         ]
         return custom_urls + urls
 
-    def import_prices_view(self, request):
-        from .import_service import import_tires, import_disks
-        import tempfile
-        import os
+    def _get_progress_file(self, task_id):
+        return f'/tmp/import_progress_{task_id}.json'
 
+    def _write_progress(self, task_id, data):
+        progress_file = self._get_progress_file(task_id)
+        tmp_file = progress_file + '.tmp'
+        with open(tmp_file, 'w') as f:
+            json.dump(data, f)
+        os.replace(tmp_file, progress_file)
+
+    def _run_import(self, task_id, file_path, import_type):
+        import django
+        django.setup()
+        from .import_service import import_tires, import_disks
+
+        def progress_callback(info):
+            self._write_progress(task_id, {
+                'status': 'running',
+                'current': info['current'],
+                'total': info['total'],
+                'created': info['created'],
+                'updated': info['updated'],
+                'skipped': info['skipped'],
+                'errors_count': info['errors_count'],
+                'message': f"Обробка рядка {info['current']} з {info['total']}...",
+            })
+
+        try:
+            if import_type == 'tires':
+                result = import_tires(file_path, progress_callback=progress_callback)
+            else:
+                result = import_disks(file_path, progress_callback=progress_callback)
+
+            self._write_progress(task_id, {
+                'status': 'completed',
+                'current': result['total_rows'],
+                'total': result['total_rows'],
+                'created': result['created'],
+                'updated': result['updated'],
+                'skipped': result['skipped'],
+                'errors_count': len(result['errors']),
+                'errors': result['errors'],
+                'message': 'Імпорт завершено!',
+            })
+        except Exception as e:
+            self._write_progress(task_id, {
+                'status': 'error',
+                'message': f'Помилка імпорту: {str(e)}',
+                'current': 0,
+                'total': 0,
+                'created': 0,
+                'updated': 0,
+                'skipped': 0,
+                'errors_count': 1,
+                'errors': [str(e)],
+            })
+        finally:
+            try:
+                os.unlink(file_path)
+            except OSError:
+                pass
+            self._clear_active_task_id()
+
+    def import_prices_view(self, request):
         context = {
             'tire_count': Tire.objects.count(),
             'disk_count': Disk.objects.count(),
             'brand_count': Brand.objects.count(),
             'supplier_count': Supplier.objects.count(),
+            'active_task_id': self._get_active_task_id() or '',
         }
-
-        if request.method == 'POST':
-            import_type = request.POST.get('import_type')
-            excel_file = request.FILES.get('excel_file')
-
-            if not excel_file:
-                context['error'] = 'Будь ласка, виберіть файл'
-            else:
-                # Save uploaded file temporarily
-                suffix = '.xlsx' if excel_file.name.endswith('.xlsx') else '.xls'
-                with tempfile.NamedTemporaryFile(delete=False, suffix=suffix) as tmp:
-                    for chunk in excel_file.chunks():
-                        tmp.write(chunk)
-                    tmp_path = tmp.name
-
-                try:
-                    if import_type == 'tires':
-                        result = import_tires(tmp_path)
-                    else:
-                        result = import_disks(tmp_path)
-                    context['result'] = result
-                    # Update counts after import
-                    context['tire_count'] = Tire.objects.count()
-                    context['disk_count'] = Disk.objects.count()
-                    context['brand_count'] = Brand.objects.count()
-                    context['supplier_count'] = Supplier.objects.count()
-                except Exception as e:
-                    context['error'] = f'Помилка імпорту: {str(e)}'
-                finally:
-                    os.unlink(tmp_path)
-
         return render(request, 'admin/catalog/import_prices.html', context)
+
+    def start_import_view(self, request):
+        if request.method != 'POST':
+            return JsonResponse({'error': 'POST only'}, status=405)
+
+        if self._get_active_task_id():
+            return JsonResponse({
+                'error': 'Імпорт вже виконується. Дочекайтесь завершення.'
+            }, status=409)
+
+        import_type = request.POST.get('import_type')
+        excel_file = request.FILES.get('excel_file')
+
+        if not excel_file:
+            return JsonResponse({'error': 'Будь ласка, виберіть файл'}, status=400)
+
+        if import_type not in ('tires', 'disks'):
+            return JsonResponse({'error': 'Невірний тип імпорту'}, status=400)
+
+        # Save uploaded file
+        suffix = '.xlsx' if excel_file.name.endswith('.xlsx') else '.xls'
+        with tempfile.NamedTemporaryFile(delete=False, suffix=suffix) as tmp:
+            for chunk in excel_file.chunks():
+                tmp.write(chunk)
+            tmp_path = tmp.name
+
+        task_id = str(uuid.uuid4())
+
+        # Write initial progress
+        self._write_progress(task_id, {
+            'status': 'running',
+            'current': 0,
+            'total': 0,
+            'created': 0,
+            'updated': 0,
+            'skipped': 0,
+            'errors_count': 0,
+            'message': 'Читання файлу...',
+        })
+
+        self._set_active_task_id(task_id)
+
+        thread = threading.Thread(
+            target=self._run_import,
+            args=(task_id, tmp_path, import_type),
+            daemon=True,
+        )
+        thread.start()
+
+        return JsonResponse({'task_id': task_id})
+
+    def import_progress_view(self, request, task_id):
+        progress_file = self._get_progress_file(task_id)
+        try:
+            with open(progress_file, 'r') as f:
+                data = json.load(f)
+            # Clean up progress file after client gets final status
+            if data.get('status') in ('completed', 'error'):
+                try:
+                    os.unlink(progress_file)
+                except OSError:
+                    pass
+                self._clear_active_task_id()
+            return JsonResponse(data)
+        except (FileNotFoundError, json.JSONDecodeError):
+            return JsonResponse({'status': 'unknown', 'message': 'Завдання не знайдено'}, status=404)
 
     def recalculate_all_prices_view(self, request):
         from .import_service import recalculate_prices_for_supplier

@@ -22,33 +22,43 @@
     {% endfor %}
   {% endif %}
 
-  {% if result %}
-    <div style="padding: 15px; margin-bottom: 20px; border-radius: 5px;
-                {% if result.errors %}background: #fff3cd; border: 1px solid #ffc107;
-                {% else %}background: #d4edda; border: 1px solid #28a745;{% endif %}">
-      <h3 style="margin-top: 0;">Результат імпорту</h3>
-      <p><strong>Всього рядків:</strong> {{ result.total_rows }}</p>
-      <p><strong>Створено:</strong> {{ result.created }}</p>
-      <p><strong>Оновлено:</strong> {{ result.updated }}</p>
-      <p><strong>Пропущено:</strong> {{ result.skipped }}</p>
-      {% if result.errors %}
-        <p><strong>Помилки (перші 20):</strong></p>
-        <ul style="font-size: 12px; color: #856404;">
-          {% for error in result.errors %}
-            <li>{{ error }}</li>
-          {% endfor %}
-        </ul>
-      {% endif %}
-    </div>
-  {% endif %}
+  <!-- Result block (shown after import completes) -->
+  <div id="import-result" style="display: none; padding: 15px; margin-bottom: 20px; border-radius: 5px;"></div>
 
-  {% if error %}
-    <div style="padding: 15px; margin-bottom: 20px; background: #f8d7da; border: 1px solid #f5c6cb; border-radius: 5px;">
-      <strong>Помилка:</strong> {{ error }}
-    </div>
-  {% endif %}
+  <!-- Error block -->
+  <div id="import-error" style="display: none; padding: 15px; margin-bottom: 20px; background: #f8d7da; border: 1px solid #f5c6cb; border-radius: 5px;"></div>
 
-  <form method="post" enctype="multipart/form-data" style="background: #f8f9fa; padding: 20px; border-radius: 5px;">
+  <!-- Progress bar section -->
+  <div id="progress-section" style="display: none; padding: 20px; margin-bottom: 20px; background: #f8f9fa; border: 1px solid #ddd; border-radius: 5px;">
+    <h3 style="margin-top: 0;">Імпорт виконується...</h3>
+    <div style="background: #e9ecef; border-radius: 8px; overflow: hidden; height: 28px; margin-bottom: 12px;">
+      <div id="progress-bar" style="background: #417690; height: 100%; width: 0%; transition: width 0.3s ease; border-radius: 8px; display: flex; align-items: center; justify-content: center; color: white; font-weight: bold; font-size: 13px; min-width: 40px;">
+        0%
+      </div>
+    </div>
+    <p id="progress-message" style="margin: 0 0 8px 0; color: #555;"></p>
+    <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-top: 12px;">
+      <div style="text-align: center; padding: 8px; background: white; border-radius: 4px; border: 1px solid #ddd;">
+        <div style="font-size: 20px; font-weight: bold; color: #28a745;" id="stat-created">0</div>
+        <div style="font-size: 11px; color: #666;">Створено</div>
+      </div>
+      <div style="text-align: center; padding: 8px; background: white; border-radius: 4px; border: 1px solid #ddd;">
+        <div style="font-size: 20px; font-weight: bold; color: #417690;" id="stat-updated">0</div>
+        <div style="font-size: 11px; color: #666;">Оновлено</div>
+      </div>
+      <div style="text-align: center; padding: 8px; background: white; border-radius: 4px; border: 1px solid #ddd;">
+        <div style="font-size: 20px; font-weight: bold; color: #6c757d;" id="stat-skipped">0</div>
+        <div style="font-size: 11px; color: #666;">Пропущено</div>
+      </div>
+      <div style="text-align: center; padding: 8px; background: white; border-radius: 4px; border: 1px solid #ddd;">
+        <div style="font-size: 20px; font-weight: bold; color: #dc3545;" id="stat-errors">0</div>
+        <div style="font-size: 11px; color: #666;">Помилок</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Import form -->
+  <form id="import-form" method="post" enctype="multipart/form-data" style="background: #f8f9fa; padding: 20px; border-radius: 5px;">
     {% csrf_token %}
 
     <div style="margin-bottom: 15px;">
@@ -69,7 +79,7 @@
              style="width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px; background: white;">
     </div>
 
-    <button type="submit" style="background: #417690; color: white; padding: 10px 20px; border: none; border-radius: 4px; cursor: pointer; font-size: 14px;">
+    <button type="submit" id="submit-btn" style="background: #417690; color: white; padding: 10px 20px; border: none; border-radius: 4px; cursor: pointer; font-size: 14px;">
       Імпортувати
     </button>
   </form>
@@ -105,4 +115,165 @@
     <p style="margin-bottom: 0;"><strong>Під замовлення:</strong> Постачальники з "21 день" в назві автоматично позначаються як "Під замовлення"</p>
   </div>
 </div>
+
+<script>
+(function() {
+  var form = document.getElementById('import-form');
+  var submitBtn = document.getElementById('submit-btn');
+  var progressSection = document.getElementById('progress-section');
+  var progressBar = document.getElementById('progress-bar');
+  var progressMessage = document.getElementById('progress-message');
+  var resultDiv = document.getElementById('import-result');
+  var errorDiv = document.getElementById('import-error');
+  var pollInterval = null;
+  var activeTaskId = '{{ active_task_id }}';
+
+  // Resume polling if import is already running
+  if (activeTaskId) {
+    progressSection.style.display = 'block';
+    submitBtn.disabled = true;
+    submitBtn.textContent = 'Імпорт виконується...';
+    startPolling(activeTaskId);
+  }
+
+  form.addEventListener('submit', function(e) {
+    e.preventDefault();
+
+    var fileInput = document.getElementById('excel_file');
+    if (!fileInput.files.length) {
+      showError('Будь ласка, виберіть файл');
+      return;
+    }
+
+    // Hide previous results/errors
+    resultDiv.style.display = 'none';
+    errorDiv.style.display = 'none';
+
+    // Disable form
+    submitBtn.disabled = true;
+    submitBtn.textContent = 'Завантаження...';
+
+    // Show progress section
+    progressSection.style.display = 'block';
+    progressBar.style.width = '0%';
+    progressBar.textContent = '0%';
+    progressMessage.textContent = 'Завантаження файлу...';
+    updateStats(0, 0, 0, 0);
+
+    var formData = new FormData(form);
+
+    fetch('/admin/import-prices/start/', {
+      method: 'POST',
+      body: formData,
+      headers: {
+        'X-CSRFToken': formData.get('csrfmiddlewaretoken')
+      }
+    })
+    .then(function(response) {
+      return response.json().then(function(data) {
+        return { ok: response.ok, data: data };
+      });
+    })
+    .then(function(result) {
+      if (!result.ok) {
+        showError(result.data.error || 'Помилка запуску імпорту');
+        resetForm();
+        return;
+      }
+      startPolling(result.data.task_id);
+    })
+    .catch(function(err) {
+      showError('Помилка з\'єднання: ' + err.message);
+      resetForm();
+    });
+  });
+
+  function startPolling(taskId) {
+    var url = '/admin/import-progress/' + taskId + '/';
+
+    pollInterval = setInterval(function() {
+      fetch(url)
+        .then(function(response) {
+          return response.json();
+        })
+        .then(function(data) {
+          if (data.status === 'running') {
+            var pct = data.total > 0 ? Math.round((data.current / data.total) * 100) : 0;
+            progressBar.style.width = pct + '%';
+            progressBar.textContent = pct + '%';
+            progressMessage.textContent = data.message || '';
+            updateStats(data.created, data.updated, data.skipped, data.errors_count);
+          } else if (data.status === 'completed') {
+            clearInterval(pollInterval);
+            progressBar.style.width = '100%';
+            progressBar.textContent = '100%';
+            progressBar.style.background = '#28a745';
+            progressMessage.textContent = 'Імпорт завершено!';
+            updateStats(data.created, data.updated, data.skipped, data.errors_count);
+            showResult(data);
+            resetForm();
+          } else if (data.status === 'error') {
+            clearInterval(pollInterval);
+            progressBar.style.width = '100%';
+            progressBar.textContent = 'Помилка';
+            progressBar.style.background = '#dc3545';
+            progressMessage.textContent = data.message || 'Помилка імпорту';
+            showError(data.message || 'Помилка імпорту');
+            resetForm();
+          }
+        })
+        .catch(function() {
+          // Network error during polling - keep trying
+        });
+    }, 1000);
+  }
+
+  function updateStats(created, updated, skipped, errors) {
+    document.getElementById('stat-created').textContent = created;
+    document.getElementById('stat-updated').textContent = updated;
+    document.getElementById('stat-skipped').textContent = skipped;
+    document.getElementById('stat-errors').textContent = errors;
+  }
+
+  function showResult(data) {
+    var hasErrors = data.errors && data.errors.length > 0;
+    resultDiv.style.background = hasErrors ? '#fff3cd' : '#d4edda';
+    resultDiv.style.border = '1px solid ' + (hasErrors ? '#ffc107' : '#28a745');
+
+    var html = '<h3 style="margin-top: 0;">Результат імпорту</h3>';
+    html += '<p><strong>Всього рядків:</strong> ' + data.total + '</p>';
+    html += '<p><strong>Створено:</strong> ' + data.created + '</p>';
+    html += '<p><strong>Оновлено:</strong> ' + data.updated + '</p>';
+    html += '<p><strong>Пропущено:</strong> ' + data.skipped + '</p>';
+
+    if (hasErrors) {
+      html += '<p><strong>Помилки (перші 20):</strong></p>';
+      html += '<ul style="font-size: 12px; color: #856404;">';
+      data.errors.forEach(function(err) {
+        html += '<li>' + escapeHtml(err) + '</li>';
+      });
+      html += '</ul>';
+    }
+
+    resultDiv.innerHTML = html;
+    resultDiv.style.display = 'block';
+  }
+
+  function showError(msg) {
+    errorDiv.innerHTML = '<strong>Помилка:</strong> ' + escapeHtml(msg);
+    errorDiv.style.display = 'block';
+  }
+
+  function resetForm() {
+    submitBtn.disabled = false;
+    submitBtn.textContent = 'Імпортувати';
+  }
+
+  function escapeHtml(str) {
+    var div = document.createElement('div');
+    div.appendChild(document.createTextNode(str));
+    return div.innerHTML;
+  }
+})();
+</script>
 {% endblock %}

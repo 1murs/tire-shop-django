@@ -1,4 +1,5 @@
 {% extends 'base.html' %}
+{% load static %}
 
 {% block title %}
   КМ/Ч 120 - Інтернет-магазин шин та дисків
@@ -158,11 +159,11 @@
     </div>
   </section>
 
-  <!-- Featured Products -->
+  <!-- Featured Tires -->
   <section class="section">
     <div class="container">
       <div class="section-header">
-        <h2 class="section-title">Рекомендовані товари</h2>
+        <h2 class="section-title">Рекомендовані шини</h2>
         <a href="{% url 'catalog:tire_list' %}" class="btn btn-secondary">Всі шини →</a>
       </div>
 
@@ -174,7 +175,7 @@
                 {% if tire.image %}
                   <img src="{{ tire.image.url }}" alt="{{ tire }}" />
                 {% else %}
-                  <img src="https://picsum.photos/seed/tire{{ tire.id }}/400/400" alt="{{ tire }}" />
+                  <img src="{% static 'images/no-image.svg' %}" alt="{{ tire }}" />
                 {% endif %}
               </div>
               <h3 class="product-name">{{ tire }}</h3>
@@ -202,26 +203,70 @@
     </div>
   </section>
 
+  <!-- Featured Disks -->
+  {% if featured_disks %}
+  <section class="section">
+    <div class="container">
+      <div class="section-header">
+        <h2 class="section-title">Рекомендовані диски</h2>
+        <a href="{% url 'catalog:disk_list' %}" class="btn btn-secondary">Всі диски →</a>
+      </div>
+
+      <div class="products-grid">
+        {% for disk in featured_disks %}
+          <a href="{% url 'catalog:disk_detail' disk.slug %}" class="product-card-link">
+            <div class="product-card">
+              <div class="product-image">
+                {% if disk.image %}
+                  <img src="{{ disk.image.url }}" alt="{{ disk }}" />
+                {% else %}
+                  <img src="{% static 'images/no-image.svg' %}" alt="{{ disk }}" />
+                {% endif %}
+              </div>
+              <h3 class="product-name">{{ disk }}</h3>
+              <div class="product-price">{{ disk.price|floatformat:0 }} ₴</div>
+              <div class="product-footer">
+                {% if disk.in_stock %}
+                  <span class="product-status available">В наявності</span>
+                {% else %}
+                  <span class="product-status pre-order">Під замовлення</span>
+                {% endif %}
+                <button class="cart-add-btn" onclick="addToCart('disk', {{ disk.id }}, event)" title="Додати в кошик">
+                  <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"></path>
+                    <line x1="3" y1="6" x2="21" y2="6"></line>
+                    <path d="M16 10a4 4 0 0 1-8 0"></path>
+                  </svg>
+                </button>
+              </div>
+            </div>
+          </a>
+        {% endfor %}
+      </div>
+    </div>
+  </section>
+  {% endif %}
+
   <!-- Categories -->
   <section class="section-sm">
     <div class="container">
       <h2 class="section-title" style="margin-bottom: 1.5rem;">Каталог</h2>
       <div class="category-grid">
-        <a href="{% url 'catalog:tire_list' %}?season=winter" class="category-large">
-          <img src="https://images.unsplash.com/photo-1568844293986-8c1a5f12717b?auto=format&fit=crop&q=80&w=1000" alt="Зимові шини" />
+        <a href="{% url 'catalog:tire_list' %}?season=winter" class="category-large" style="background: linear-gradient(135deg, #1e3a5f 0%, #2d5a8a 100%); display: flex; align-items: center; justify-content: center; min-height: 280px;">
+          <svg viewBox="0 0 120 120" width="80" height="80" style="opacity: 0.3; position: absolute;"><circle cx="60" cy="60" r="50" fill="none" stroke="white" stroke-width="8"/><circle cx="60" cy="60" r="35" fill="none" stroke="white" stroke-width="4"/><path d="M60 10 L60 25 M60 95 L60 110 M10 60 L25 60 M95 60 L110 60 M25 25 L36 36 M84 84 L95 95 M95 25 L84 36 M36 84 L25 95" stroke="white" stroke-width="3"/></svg>
           <div class="category-label-container">
             <span class="category-label">Зимові шини</span>
           </div>
         </a>
         <div class="category-small">
-          <a href="{% url 'catalog:disk_list' %}" class="category-item">
-            <img src="https://images.unsplash.com/photo-1611016186353-9af58c69a533?auto=format&fit=crop&q=80&w=800" alt="Диски" />
+          <a href="{% url 'catalog:disk_list' %}" class="category-item" style="background: linear-gradient(135deg, #2a2a2a 0%, #555 100%); display: flex; align-items: center; justify-content: center;">
+            <svg viewBox="0 0 120 120" width="60" height="60" style="opacity: 0.3; position: absolute;"><circle cx="60" cy="60" r="50" fill="none" stroke="white" stroke-width="6"/><circle cx="60" cy="60" r="20" fill="none" stroke="white" stroke-width="4"/><circle cx="60" cy="60" r="8" fill="white" opacity="0.5"/><line x1="60" y1="15" x2="60" y2="38" stroke="white" stroke-width="3"/><line x1="60" y1="82" x2="60" y2="105" stroke="white" stroke-width="3"/><line x1="15" y1="60" x2="38" y2="60" stroke="white" stroke-width="3"/><line x1="82" y1="60" x2="105" y2="60" stroke="white" stroke-width="3"/><line x1="28" y1="28" x2="44" y2="44" stroke="white" stroke-width="3"/></svg>
             <div class="category-label-container-sm">
               <span class="category-label-sm">Литі диски</span>
             </div>
           </a>
-          <a href="{% url 'catalog:tire_list' %}?season=summer" class="category-item">
-            <img src="https://images.unsplash.com/photo-1558618666-fcd25c85cd64?auto=format&fit=crop&q=80&w=800" alt="Літні шини" />
+          <a href="{% url 'catalog:tire_list' %}?season=summer" class="category-item" style="background: linear-gradient(135deg, #e63946 0%, #ff6b6b 100%); display: flex; align-items: center; justify-content: center;">
+            <svg viewBox="0 0 120 120" width="60" height="60" style="opacity: 0.3; position: absolute;"><circle cx="60" cy="60" r="50" fill="none" stroke="white" stroke-width="6"/><circle cx="60" cy="60" r="35" fill="none" stroke="white" stroke-width="4"/><circle cx="60" cy="60" r="20" fill="none" stroke="white" stroke-width="3"/></svg>
             <div class="category-label-container-sm">
               <span class="category-label-sm">Літні шини</span>
             </div>
