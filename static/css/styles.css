@@ -159,8 +159,8 @@ button {
 }
 
 .nav-link {
-    padding: 0.5rem 0.875rem;
-    font-size: 0.9375rem;
+    padding: 0.5rem 0.625rem;
+    font-size: 0.875rem;
     font-weight: 500;
     color: var(--text-dark);
     border-radius: var(--radius-sm);
