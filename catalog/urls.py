@@ -34,4 +34,8 @@ urlpatterns = [
     path("calculator/years/", views.calculator_get_years, name="calculator_years"),
     path("calculator/modifications/", views.calculator_get_modifications, name="calculator_modifications"),
     path("calculator/fitment/", views.calculator_get_fitment, name="calculator_fitment"),
+    # Live Chat
+    path("chat/send/", views.chat_send, name="chat_send"),
+    path("chat/messages/", views.chat_messages, name="chat_messages"),
+    path("chat/webhook/", views.chat_telegram_webhook, name="chat_webhook"),
 ]

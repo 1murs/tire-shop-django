@@ -29,100 +29,154 @@
               </div>
             </div>
 
-            <div class="filter-section">
-              <label class="filter-label" for="diameter">Діаметр</label>
-              <select name="diameter" id="diameter" class="filter-select">
-                <option value="">Всі</option>
-                {% for d in filter_options.diameters %}
-                  <option value="{{ d }}" {% if current_filters.diameter == d|stringformat:"s" %}selected{% endif %}>
-                    R{{ d }}
-                  </option>
-                {% endfor %}
-              </select>
+            <div class="filter-section filter-collapsible{% if current_filters.diameters %} filter-open{% endif %}">
+              <label class="filter-label filter-toggle" onclick="toggleFilter(this)">
+                Діаметр
+                <svg class="filter-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><polyline points="6 9 12 15 18 9"></polyline></svg>
+                {% if current_filters.diameters %}<span class="filter-count-badge">{{ current_filters.diameters|length }}</span>{% endif %}
+              </label>
+              <div class="filter-body">
+                <input type="text" class="filter-search" placeholder="Пошук..." oninput="filterCheckboxes(this)">
+                <div class="filter-checkbox-list">
+                  {% for d in filter_options.diameters %}
+                    <label class="filter-check-item">
+                      <input type="checkbox" name="diameter" value="{{ d }}" {% if d|stringformat:"s" in current_filters.diameters %}checked{% endif %}>
+                      <span>R{{ d }}</span>
+                    </label>
+                  {% endfor %}
+                </div>
+              </div>
             </div>
 
-            <div class="filter-section">
-              <label class="filter-label" for="width">Ширина</label>
-              <select name="width" id="width" class="filter-select">
-                <option value="">Всі</option>
-                {% for w in filter_options.widths %}
-                  <option value="{{ w }}" {% if current_filters.width == w|stringformat:"s" %}selected{% endif %}>
-                    {{ w }} мм
-                  </option>
-                {% endfor %}
-              </select>
+            <div class="filter-section filter-collapsible{% if current_filters.widths %} filter-open{% endif %}">
+              <label class="filter-label filter-toggle" onclick="toggleFilter(this)">
+                Ширина
+                <svg class="filter-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><polyline points="6 9 12 15 18 9"></polyline></svg>
+                {% if current_filters.widths %}<span class="filter-count-badge">{{ current_filters.widths|length }}</span>{% endif %}
+              </label>
+              <div class="filter-body">
+                <input type="text" class="filter-search" placeholder="Пошук..." oninput="filterCheckboxes(this)">
+                <div class="filter-checkbox-list">
+                  {% for w in filter_options.widths %}
+                    <label class="filter-check-item">
+                      <input type="checkbox" name="width" value="{{ w }}" {% if w|stringformat:"s" in current_filters.widths %}checked{% endif %}>
+                      <span>{{ w }}</span>
+                    </label>
+                  {% endfor %}
+                </div>
+              </div>
             </div>
 
-            <div class="filter-section">
-              <label class="filter-label" for="profile">Профіль</label>
-              <select name="profile" id="profile" class="filter-select">
-                <option value="">Всі</option>
-                {% for p in filter_options.profiles %}
-                  <option value="{{ p }}" {% if current_filters.profile == p|stringformat:"s" %}selected{% endif %}>
-                    {{ p }}
-                  </option>
-                {% endfor %}
-              </select>
+            <div class="filter-section filter-collapsible{% if current_filters.profiles %} filter-open{% endif %}">
+              <label class="filter-label filter-toggle" onclick="toggleFilter(this)">
+                Профіль
+                <svg class="filter-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><polyline points="6 9 12 15 18 9"></polyline></svg>
+                {% if current_filters.profiles %}<span class="filter-count-badge">{{ current_filters.profiles|length }}</span>{% endif %}
+              </label>
+              <div class="filter-body">
+                <input type="text" class="filter-search" placeholder="Пошук..." oninput="filterCheckboxes(this)">
+                <div class="filter-checkbox-list">
+                  {% for p in filter_options.profiles %}
+                    <label class="filter-check-item">
+                      <input type="checkbox" name="profile" value="{{ p }}" {% if p|stringformat:"s" in current_filters.profiles %}checked{% endif %}>
+                      <span>{{ p }}</span>
+                    </label>
+                  {% endfor %}
+                </div>
+              </div>
             </div>
 
-            <div class="filter-section">
-              <label class="filter-label" for="season">Сезон</label>
-              <select name="season" id="season" class="filter-select">
-                <option value="">Всі</option>
-                {% for value, label in filter_options.seasons %}
-                  <option value="{{ value }}" {% if current_filters.season == value %}selected{% endif %}>
-                    {{ label }}
-                  </option>
-                {% endfor %}
-              </select>
+            <div class="filter-section filter-collapsible{% if current_filters.seasons %} filter-open{% endif %}">
+              <label class="filter-label filter-toggle" onclick="toggleFilter(this)">
+                Сезон
+                <svg class="filter-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><polyline points="6 9 12 15 18 9"></polyline></svg>
+                {% if current_filters.seasons %}<span class="filter-count-badge">{{ current_filters.seasons|length }}</span>{% endif %}
+              </label>
+              <div class="filter-body">
+                <div class="filter-checkbox-list filter-checkbox-short">
+                  {% for value, label in filter_options.seasons %}
+                    <label class="filter-check-item">
+                      <input type="checkbox" name="season" value="{{ value }}" {% if value in current_filters.seasons %}checked{% endif %}>
+                      <span>{{ label }}</span>
+                    </label>
+                  {% endfor %}
+                </div>
+              </div>
             </div>
 
-            <div class="filter-section">
-              <label class="filter-label" for="studded">Шипування</label>
-              <select name="studded" id="studded" class="filter-select">
-                <option value="">Всі</option>
-                {% for value, label in filter_options.studded_choices %}
-                  <option value="{{ value }}" {% if current_filters.studded == value %}selected{% endif %}>
-                    {{ label }}
-                  </option>
-                {% endfor %}
-              </select>
+            <div class="filter-section filter-collapsible{% if current_filters.studdeds %} filter-open{% endif %}">
+              <label class="filter-label filter-toggle" onclick="toggleFilter(this)">
+                Шипування
+                <svg class="filter-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><polyline points="6 9 12 15 18 9"></polyline></svg>
+                {% if current_filters.studdeds %}<span class="filter-count-badge">{{ current_filters.studdeds|length }}</span>{% endif %}
+              </label>
+              <div class="filter-body">
+                <div class="filter-checkbox-list filter-checkbox-short">
+                  {% for value, label in filter_options.studded_choices %}
+                    <label class="filter-check-item">
+                      <input type="checkbox" name="studded" value="{{ value }}" {% if value in current_filters.studdeds %}checked{% endif %}>
+                      <span>{{ label }}</span>
+                    </label>
+                  {% endfor %}
+                </div>
+              </div>
             </div>
 
-            <div class="filter-section">
-              <label class="filter-label" for="brand">Бренд</label>
-              <select name="brand" id="brand" class="filter-select">
-                <option value="">Всі бренди</option>
-                {% for brand in filter_options.brands %}
-                  <option value="{{ brand.slug }}" {% if current_filters.brand == brand.slug %}selected{% endif %}>
-                    {{ brand.name }}
-                  </option>
-                {% endfor %}
-              </select>
+            <div class="filter-section filter-collapsible{% if current_filters.brands %} filter-open{% endif %}">
+              <label class="filter-label filter-toggle" onclick="toggleFilter(this)">
+                Бренд
+                <svg class="filter-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><polyline points="6 9 12 15 18 9"></polyline></svg>
+                {% if current_filters.brands %}<span class="filter-count-badge">{{ current_filters.brands|length }}</span>{% endif %}
+              </label>
+              <div class="filter-body">
+                <input type="text" class="filter-search" placeholder="Пошук бренду..." oninput="filterCheckboxes(this)">
+                <div class="filter-checkbox-list">
+                  {% for brand in filter_options.brands %}
+                    <label class="filter-check-item">
+                      <input type="checkbox" name="brand" value="{{ brand.slug }}" {% if brand.slug in current_filters.brands %}checked{% endif %}>
+                      <span>{{ brand.name }}</span>
+                    </label>
+                  {% endfor %}
+                </div>
+              </div>
             </div>
 
-            <div class="filter-section">
-              <label class="filter-label" for="load_index">Індекс навантаження</label>
-              <select name="load_index" id="load_index" class="filter-select">
-                <option value="">Всі</option>
-                {% for li in filter_options.load_indices %}
-                  <option value="{{ li }}" {% if current_filters.load_index == li|stringformat:"s" %}selected{% endif %}>
-                    {{ li }}
-                  </option>
-                {% endfor %}
-              </select>
+            <div class="filter-section filter-collapsible{% if current_filters.load_indices %} filter-open{% endif %}">
+              <label class="filter-label filter-toggle" onclick="toggleFilter(this)">
+                Індекс навантаження
+                <svg class="filter-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><polyline points="6 9 12 15 18 9"></polyline></svg>
+                {% if current_filters.load_indices %}<span class="filter-count-badge">{{ current_filters.load_indices|length }}</span>{% endif %}
+              </label>
+              <div class="filter-body">
+                <input type="text" class="filter-search" placeholder="Пошук..." oninput="filterCheckboxes(this)">
+                <div class="filter-checkbox-list">
+                  {% for li in filter_options.load_indices %}
+                    <label class="filter-check-item">
+                      <input type="checkbox" name="load_index" value="{{ li }}" {% if li|stringformat:"s" in current_filters.load_indices %}checked{% endif %}>
+                      <span>{{ li }}</span>
+                    </label>
+                  {% endfor %}
+                </div>
+              </div>
             </div>
 
-            <div class="filter-section">
-              <label class="filter-label" for="speed_index">Індекс швидкості</label>
-              <select name="speed_index" id="speed_index" class="filter-select">
-                <option value="">Всі</option>
-                {% for si in filter_options.speed_indices %}
-                  <option value="{{ si }}" {% if current_filters.speed_index == si %}selected{% endif %}>
-                    {{ si }}
-                  </option>
-                {% endfor %}
-              </select>
+            <div class="filter-section filter-collapsible{% if current_filters.speed_indices %} filter-open{% endif %}">
+              <label class="filter-label filter-toggle" onclick="toggleFilter(this)">
+                Індекс швидкості
+                <svg class="filter-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><polyline points="6 9 12 15 18 9"></polyline></svg>
+                {% if current_filters.speed_indices %}<span class="filter-count-badge">{{ current_filters.speed_indices|length }}</span>{% endif %}
+              </label>
+              <div class="filter-body">
+                <input type="text" class="filter-search" placeholder="Пошук..." oninput="filterCheckboxes(this)">
+                <div class="filter-checkbox-list">
+                  {% for si in filter_options.speed_indices %}
+                    <label class="filter-check-item">
+                      <input type="checkbox" name="speed_index" value="{{ si }}" {% if si in current_filters.speed_indices %}checked{% endif %}>
+                      <span>{{ si }}</span>
+                    </label>
+                  {% endfor %}
+                </div>
+              </div>
             </div>
 
             <div class="filter-buttons">
@@ -177,13 +231,13 @@
           {% if tires.has_other_pages %}
             <div class="pagination">
               {% if tires.has_previous %}
-                <a href="?{% if current_filters.diameter %}diameter={{ current_filters.diameter }}&{% endif %}{% if current_filters.width %}width={{ current_filters.width }}&{% endif %}{% if current_filters.profile %}profile={{ current_filters.profile }}&{% endif %}{% if current_filters.season %}season={{ current_filters.season }}&{% endif %}{% if current_filters.brand %}brand={{ current_filters.brand }}&{% endif %}{% if current_filters.load_index %}load_index={{ current_filters.load_index }}&{% endif %}{% if current_filters.speed_index %}speed_index={{ current_filters.speed_index }}&{% endif %}{% if current_filters.studded %}studded={{ current_filters.studded }}&{% endif %}{% if current_filters.price_min %}price_min={{ current_filters.price_min }}&{% endif %}{% if current_filters.price_max %}price_max={{ current_filters.price_max }}&{% endif %}page=1" class="pagination-btn" title="Перша сторінка">
+                <a href="?{{ filter_query_string }}{% if filter_query_string %}&{% endif %}page=1" class="pagination-btn" title="Перша сторінка">
                   <svg class="icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                     <polyline points="11 17 6 12 11 7"></polyline>
                     <polyline points="18 17 13 12 18 7"></polyline>
                   </svg>
                 </a>
-                <a href="?{% if current_filters.diameter %}diameter={{ current_filters.diameter }}&{% endif %}{% if current_filters.width %}width={{ current_filters.width }}&{% endif %}{% if current_filters.profile %}profile={{ current_filters.profile }}&{% endif %}{% if current_filters.season %}season={{ current_filters.season }}&{% endif %}{% if current_filters.brand %}brand={{ current_filters.brand }}&{% endif %}{% if current_filters.load_index %}load_index={{ current_filters.load_index }}&{% endif %}{% if current_filters.speed_index %}speed_index={{ current_filters.speed_index }}&{% endif %}{% if current_filters.studded %}studded={{ current_filters.studded }}&{% endif %}{% if current_filters.price_min %}price_min={{ current_filters.price_min }}&{% endif %}{% if current_filters.price_max %}price_max={{ current_filters.price_max }}&{% endif %}page={{ tires.previous_page_number }}" class="pagination-btn" title="Попередня">
+                <a href="?{{ filter_query_string }}{% if filter_query_string %}&{% endif %}page={{ tires.previous_page_number }}" class="pagination-btn" title="Попередня">
                   <svg class="icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                     <polyline points="15 18 9 12 15 6"></polyline>
                   </svg>
@@ -194,21 +248,21 @@
                 {% if tires.number == num %}
                   <span class="pagination-num active">{{ num }}</span>
                 {% elif num > tires.number|add:'-3' and num < tires.number|add:'3' %}
-                  <a href="?{% if current_filters.diameter %}diameter={{ current_filters.diameter }}&{% endif %}{% if current_filters.width %}width={{ current_filters.width }}&{% endif %}{% if current_filters.profile %}profile={{ current_filters.profile }}&{% endif %}{% if current_filters.season %}season={{ current_filters.season }}&{% endif %}{% if current_filters.brand %}brand={{ current_filters.brand }}&{% endif %}{% if current_filters.load_index %}load_index={{ current_filters.load_index }}&{% endif %}{% if current_filters.speed_index %}speed_index={{ current_filters.speed_index }}&{% endif %}{% if current_filters.studded %}studded={{ current_filters.studded }}&{% endif %}{% if current_filters.price_min %}price_min={{ current_filters.price_min }}&{% endif %}{% if current_filters.price_max %}price_max={{ current_filters.price_max }}&{% endif %}page={{ num }}" class="pagination-num">{{ num }}</a>
+                  <a href="?{{ filter_query_string }}{% if filter_query_string %}&{% endif %}page={{ num }}" class="pagination-num">{{ num }}</a>
                 {% elif num == 1 or num == tires.paginator.num_pages %}
-                  <a href="?{% if current_filters.diameter %}diameter={{ current_filters.diameter }}&{% endif %}{% if current_filters.width %}width={{ current_filters.width }}&{% endif %}{% if current_filters.profile %}profile={{ current_filters.profile }}&{% endif %}{% if current_filters.season %}season={{ current_filters.season }}&{% endif %}{% if current_filters.brand %}brand={{ current_filters.brand }}&{% endif %}{% if current_filters.load_index %}load_index={{ current_filters.load_index }}&{% endif %}{% if current_filters.speed_index %}speed_index={{ current_filters.speed_index }}&{% endif %}{% if current_filters.studded %}studded={{ current_filters.studded }}&{% endif %}{% if current_filters.price_min %}price_min={{ current_filters.price_min }}&{% endif %}{% if current_filters.price_max %}price_max={{ current_filters.price_max }}&{% endif %}page={{ num }}" class="pagination-num">{{ num }}</a>
+                  <a href="?{{ filter_query_string }}{% if filter_query_string %}&{% endif %}page={{ num }}" class="pagination-num">{{ num }}</a>
                 {% elif num == tires.number|add:'-3' or num == tires.number|add:'3' %}
                   <span class="pagination-dots">...</span>
                 {% endif %}
               {% endfor %}
 
               {% if tires.has_next %}
-                <a href="?{% if current_filters.diameter %}diameter={{ current_filters.diameter }}&{% endif %}{% if current_filters.width %}width={{ current_filters.width }}&{% endif %}{% if current_filters.profile %}profile={{ current_filters.profile }}&{% endif %}{% if current_filters.season %}season={{ current_filters.season }}&{% endif %}{% if current_filters.brand %}brand={{ current_filters.brand }}&{% endif %}{% if current_filters.load_index %}load_index={{ current_filters.load_index }}&{% endif %}{% if current_filters.speed_index %}speed_index={{ current_filters.speed_index }}&{% endif %}{% if current_filters.studded %}studded={{ current_filters.studded }}&{% endif %}{% if current_filters.price_min %}price_min={{ current_filters.price_min }}&{% endif %}{% if current_filters.price_max %}price_max={{ current_filters.price_max }}&{% endif %}page={{ tires.next_page_number }}" class="pagination-btn" title="Наступна">
+                <a href="?{{ filter_query_string }}{% if filter_query_string %}&{% endif %}page={{ tires.next_page_number }}" class="pagination-btn" title="Наступна">
                   <svg class="icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                     <polyline points="9 18 15 12 9 6"></polyline>
                   </svg>
                 </a>
-                <a href="?{% if current_filters.diameter %}diameter={{ current_filters.diameter }}&{% endif %}{% if current_filters.width %}width={{ current_filters.width }}&{% endif %}{% if current_filters.profile %}profile={{ current_filters.profile }}&{% endif %}{% if current_filters.season %}season={{ current_filters.season }}&{% endif %}{% if current_filters.brand %}brand={{ current_filters.brand }}&{% endif %}{% if current_filters.load_index %}load_index={{ current_filters.load_index }}&{% endif %}{% if current_filters.speed_index %}speed_index={{ current_filters.speed_index }}&{% endif %}{% if current_filters.studded %}studded={{ current_filters.studded }}&{% endif %}{% if current_filters.price_min %}price_min={{ current_filters.price_min }}&{% endif %}{% if current_filters.price_max %}price_max={{ current_filters.price_max }}&{% endif %}page={{ tires.paginator.num_pages }}" class="pagination-btn" title="Остання сторінка">
+                <a href="?{{ filter_query_string }}{% if filter_query_string %}&{% endif %}page={{ tires.paginator.num_pages }}" class="pagination-btn" title="Остання сторінка">
                   <svg class="icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                     <polyline points="13 17 18 12 13 7"></polyline>
                     <polyline points="6 17 11 12 6 7"></polyline>
@@ -221,4 +275,18 @@
       </div>
     </div>
   </section>
+
+  <script>
+    function toggleFilter(el) {
+      el.closest('.filter-collapsible').classList.toggle('filter-open');
+    }
+    function filterCheckboxes(input) {
+      const query = input.value.toLowerCase();
+      const items = input.closest('.filter-body').querySelectorAll('.filter-check-item');
+      items.forEach(function(item) {
+        const text = item.querySelector('span').textContent.toLowerCase();
+        item.style.display = text.includes(query) ? '' : 'none';
+      });
+    }
+  </script>
 {% endblock %}

@@ -252,21 +252,21 @@
     <div class="container">
       <h2 class="section-title" style="margin-bottom: 1.5rem;">Каталог</h2>
       <div class="category-grid">
-        <a href="{% url 'catalog:tire_list' %}?season=winter" class="category-large" style="background: linear-gradient(135deg, #1e3a5f 0%, #2d5a8a 100%); display: flex; align-items: center; justify-content: center; min-height: 280px;">
-          <svg viewBox="0 0 120 120" width="80" height="80" style="opacity: 0.3; position: absolute;"><circle cx="60" cy="60" r="50" fill="none" stroke="white" stroke-width="8"/><circle cx="60" cy="60" r="35" fill="none" stroke="white" stroke-width="4"/><path d="M60 10 L60 25 M60 95 L60 110 M10 60 L25 60 M95 60 L110 60 M25 25 L36 36 M84 84 L95 95 M95 25 L84 36 M36 84 L25 95" stroke="white" stroke-width="3"/></svg>
+        <a href="{% url 'catalog:tire_list' %}?season=winter" class="category-large" style="background: url('{% static 'images/cat-winter.png' %}?v=3') center/cover; min-height: 280px;">
+          <div class="category-overlay"></div>
           <div class="category-label-container">
             <span class="category-label">Зимові шини</span>
           </div>
         </a>
         <div class="category-small">
-          <a href="{% url 'catalog:disk_list' %}" class="category-item" style="background: linear-gradient(135deg, #2a2a2a 0%, #555 100%); display: flex; align-items: center; justify-content: center;">
-            <svg viewBox="0 0 120 120" width="60" height="60" style="opacity: 0.3; position: absolute;"><circle cx="60" cy="60" r="50" fill="none" stroke="white" stroke-width="6"/><circle cx="60" cy="60" r="20" fill="none" stroke="white" stroke-width="4"/><circle cx="60" cy="60" r="8" fill="white" opacity="0.5"/><line x1="60" y1="15" x2="60" y2="38" stroke="white" stroke-width="3"/><line x1="60" y1="82" x2="60" y2="105" stroke="white" stroke-width="3"/><line x1="15" y1="60" x2="38" y2="60" stroke="white" stroke-width="3"/><line x1="82" y1="60" x2="105" y2="60" stroke="white" stroke-width="3"/><line x1="28" y1="28" x2="44" y2="44" stroke="white" stroke-width="3"/></svg>
+          <a href="{% url 'catalog:disk_list' %}" class="category-item" style="background: url('{% static 'images/cat-disk.jpg' %}?v=3') center/cover;">
+            <div class="category-overlay"></div>
             <div class="category-label-container-sm">
-              <span class="category-label-sm">Литі диски</span>
+              <span class="category-label-sm">Диски</span>
             </div>
           </a>
-          <a href="{% url 'catalog:tire_list' %}?season=summer" class="category-item" style="background: linear-gradient(135deg, #e63946 0%, #ff6b6b 100%); display: flex; align-items: center; justify-content: center;">
-            <svg viewBox="0 0 120 120" width="60" height="60" style="opacity: 0.3; position: absolute;"><circle cx="60" cy="60" r="50" fill="none" stroke="white" stroke-width="6"/><circle cx="60" cy="60" r="35" fill="none" stroke="white" stroke-width="4"/><circle cx="60" cy="60" r="20" fill="none" stroke="white" stroke-width="3"/></svg>
+          <a href="{% url 'catalog:tire_list' %}?season=summer" class="category-item" style="background: url('{% static 'images/cat-summer.jpg' %}?v=3') center/cover;">
+            <div class="category-overlay"></div>
             <div class="category-label-container-sm">
               <span class="category-label-sm">Літні шини</span>
             </div>
@@ -281,7 +281,7 @@
     <div class="container-narrow">
       <h2 class="section-title-centered">Про магазин КМ/Ч 120</h2>
       <div class="content-text" style="text-align: center;">
-        <p>Ми спеціалізуємось на продажу якісних шин та дисків від провідних світових виробників. Працюємо з 2020 року та маємо власний склад у Києві.</p>
+        <p>Ми спеціалізуємось на продажу якісних шин та дисків від провідних світових виробників. Працюємо з 2008 року.</p>
         <p>Наші менеджери допоможуть підібрати оптимальний варіант саме для вашого автомобіля. Гарантуємо оригінальність товару та швидку доставку по всій Україні.</p>
       </div>
     </div>
@@ -296,7 +296,7 @@
           <a href="tel:+380963870223">+38 (096) 38-70-223</a><br />
           <a href="tel:+380508572399">+38 (050) 857-23-99</a>
         </p>
-        <p>Пн-Пт: 9:00 - 18:00 | Сб: 9:00 - 15:00</p>
+        <p>Пн-Сб: 9:00 - 18:00</p>
       </div>
     </div>
   </section>

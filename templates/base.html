@@ -9,7 +9,7 @@
         КМ/Ч 120
       {% endblock %}
     </title>
-    <link rel="stylesheet" href="{% static 'css/styles.css' %}?v=5" />
+    <link rel="stylesheet" href="{% static 'css/styles.css' %}?v=20260318e" />
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
   </head>
   <body>
@@ -25,7 +25,7 @@
             </svg>
           </div>
           <div class="working-hours">
-            <span>Працюємо: Пн-Пт 9:00-18:00</span>
+            <span>Працюємо: Пн-Сб 9:00-18:00</span>
           </div>
         </div>
       </div>
@@ -33,10 +33,7 @@
       <!-- Main Nav -->
       <div class="main-nav">
         <a href="{% url 'catalog:index' %}" class="logo">
-          <div class="logo-container">
-            <span class="logo-top">КМ/Ч</span>
-            <span class="logo-bottom">120</span>
-          </div>
+          <img src="{% static 'images/logo.png' %}" alt="КМ/Ч 120" class="logo-img">
         </a>
 
         <nav class="nav-links">
@@ -105,10 +102,7 @@
       <div class="mobile-menu">
         <div class="mobile-menu-header">
           <a href="{% url 'catalog:index' %}" class="logo">
-            <div class="logo-container">
-              <span class="logo-top">КМ/Ч</span>
-              <span class="logo-bottom">120</span>
-            </div>
+            <img src="{% static 'images/logo.png' %}" alt="КМ/Ч 120" class="logo-img">
           </a>
           <button class="mobile-menu-close" id="mobileMenuClose" aria-label="Закрити">&times;</button>
         </div>
@@ -124,7 +118,7 @@
         <div class="mobile-menu-footer">
           <a href="tel:+380963870223" class="mobile-phone">+38 (096) 38-70-223</a>
           <a href="tel:+380508572399" class="mobile-phone">+38 (050) 857-23-99</a>
-          <span class="mobile-hours">Пн-Пт 9:00-18:00</span>
+          <span class="mobile-hours">Пн-Сб 9:00-18:00</span>
         </div>
       </div>
     </div>
@@ -140,10 +134,7 @@
         <div class="footer-grid">
           <div class="footer-col">
             <a href="{% url 'catalog:index' %}" class="logo">
-              <div class="logo-container">
-                <span class="logo-top-footer">КМ/Ч</span>
-                <span class="logo-bottom-footer">120</span>
-              </div>
+              <img src="{% static 'images/logo.png' %}" alt="КМ/Ч 120" class="logo-img logo-img-footer">
             </a>
             <p class="footer-copyright">120.com.ua &copy; 2026</p>
           </div>
@@ -227,16 +218,40 @@
       </div>
     </div>
 
-    <!-- Floating Help Widget -->
-    <div class="help-widget" id="helpWidget" onclick="openCallbackModal()">
-      <div class="help-widget-icon">
+    <!-- Live Chat Widget -->
+    <button class="chat-trigger" id="chatTrigger" onclick="toggleChat()" aria-label="Чат">
+      <div class="chat-trigger-icon">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="24" height="24">
           <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
         </svg>
+        <span class="chat-unread" id="chatUnread" style="display:none">0</span>
       </div>
-      <div class="help-widget-text">
-        <span class="help-widget-title">Потрібна допомога?</span>
-        <span class="help-widget-sub">Залиште повідомлення</span>
+      <div class="chat-trigger-text">
+        <span class="chat-trigger-title">Напишіть нам</span>
+        <span class="chat-trigger-sub">Онлайн-чат</span>
+      </div>
+    </button>
+
+    <div class="chat-panel" id="chatPanel">
+      <div class="chat-header">
+        <span class="chat-header-title">Чат з консультантом</span>
+        <button class="chat-header-close" onclick="toggleChat()">&times;</button>
+      </div>
+      <div class="chat-messages" id="chatMessages">
+        <div class="chat-welcome">Вітаємо! Напишіть нам і ми відповімо якнайшвидше.</div>
+      </div>
+      <div class="chat-name-form" id="chatNameForm">
+        <input type="text" id="chatNameInput" class="chat-name-input" placeholder="Ваше ім'я" maxlength="100">
+        <button class="chat-name-btn" onclick="saveChatName()">Почати чат</button>
+      </div>
+      <div class="chat-input-area" id="chatInputArea" style="display:none">
+        <input type="text" id="chatInput" class="chat-text-input" placeholder="Напишіть повідомлення..." maxlength="1000">
+        <button class="chat-send-btn" onclick="sendChatMessage()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="20" height="20">
+            <line x1="22" y1="2" x2="11" y2="13"></line>
+            <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+          </svg>
+        </button>
       </div>
     </div>
 
@@ -491,6 +506,150 @@
       mobileOverlay.addEventListener('click', function(e) {
         if (e.target === this) closeMobileMenu();
       });
+
+      // ─── Live Chat ───────────────────────────────────
+      let chatOpen = false;
+      let chatPollingTimer = null;
+      let chatLastId = 0;
+      let chatUnreadCount = 0;
+
+      function toggleChat() {
+        chatOpen = !chatOpen;
+        document.getElementById('chatPanel').classList.toggle('open', chatOpen);
+        document.getElementById('chatTrigger').classList.toggle('active', chatOpen);
+        if (chatOpen) {
+          chatUnreadCount = 0;
+          updateUnreadBadge();
+          const name = localStorage.getItem('chatName');
+          if (name) {
+            document.getElementById('chatNameForm').style.display = 'none';
+            document.getElementById('chatInputArea').style.display = 'flex';
+            document.getElementById('chatInput').focus();
+          }
+          startPolling();
+          scrollChatDown();
+        } else {
+          stopPolling();
+        }
+      }
+
+      function saveChatName() {
+        const input = document.getElementById('chatNameInput');
+        const name = input.value.trim();
+        if (!name) { input.focus(); return; }
+        localStorage.setItem('chatName', name);
+        document.getElementById('chatNameForm').style.display = 'none';
+        document.getElementById('chatInputArea').style.display = 'flex';
+        document.getElementById('chatInput').focus();
+      }
+
+      function sendChatMessage() {
+        const input = document.getElementById('chatInput');
+        const text = input.value.trim();
+        if (!text) return;
+        input.value = '';
+
+        const name = localStorage.getItem('chatName') || '';
+
+        appendMsg('visitor', text);
+
+        fetch('{% url "catalog:chat_send" %}', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': '{{ csrf_token }}'
+          },
+          body: JSON.stringify({ text: text, name: name })
+        })
+        .then(r => r.json())
+        .then(data => {
+          if (data.success && data.message) {
+            chatLastId = Math.max(chatLastId, data.message.id);
+          }
+          if (!chatPollingTimer) startPolling();
+        })
+        .catch(() => {});
+      }
+
+      function appendMsg(sender, text) {
+        const container = document.getElementById('chatMessages');
+        const div = document.createElement('div');
+        div.className = 'chat-msg chat-msg-' + sender;
+        div.textContent = text;
+        container.appendChild(div);
+        scrollChatDown();
+      }
+
+      function scrollChatDown() {
+        const el = document.getElementById('chatMessages');
+        setTimeout(() => { el.scrollTop = el.scrollHeight; }, 50);
+      }
+
+      function pollMessages() {
+        fetch('{% url "catalog:chat_messages" %}?after=' + chatLastId)
+          .then(r => r.json())
+          .then(data => {
+            if (data.messages && data.messages.length) {
+              data.messages.forEach(m => {
+                if (m.id > chatLastId) {
+                  chatLastId = m.id;
+                  if (m.sender === 'admin') {
+                    appendMsg('admin', m.text);
+                    if (!chatOpen) {
+                      chatUnreadCount++;
+                      updateUnreadBadge();
+                    }
+                  }
+                }
+              });
+            }
+          })
+          .catch(() => {});
+      }
+
+      function startPolling() {
+        if (chatPollingTimer) return;
+        pollMessages();
+        chatPollingTimer = setInterval(pollMessages, 4000);
+      }
+
+      function stopPolling() {
+        if (chatPollingTimer) {
+          clearInterval(chatPollingTimer);
+          chatPollingTimer = null;
+        }
+      }
+
+      function updateUnreadBadge() {
+        const badge = document.getElementById('chatUnread');
+        if (chatUnreadCount > 0) {
+          badge.textContent = chatUnreadCount;
+          badge.style.display = 'flex';
+        } else {
+          badge.style.display = 'none';
+        }
+      }
+
+      // Enter key sends message
+      document.getElementById('chatInput').addEventListener('keydown', function(e) {
+        if (e.key === 'Enter') { e.preventDefault(); sendChatMessage(); }
+      });
+
+      document.getElementById('chatNameInput').addEventListener('keydown', function(e) {
+        if (e.key === 'Enter') { e.preventDefault(); saveChatName(); }
+      });
+
+      // Restore chat state from localStorage
+      (function() {
+        const name = localStorage.getItem('chatName');
+        if (name) {
+          document.getElementById('chatNameInput').value = name;
+          document.getElementById('chatNameForm').style.display = 'none';
+          document.getElementById('chatInputArea').style.display = 'flex';
+        }
+        // Start polling in background to catch admin replies
+        startPolling();
+      })();
     </script>
   </body>
 </html>

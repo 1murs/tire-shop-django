@@ -280,3 +280,38 @@ class CarFitment(models.Model):
 
     def __str__(self):
         return f"{self.vendor} {self.car} {self.year} {self.modification}"
+
+
+class ChatSession(models.Model):
+    session_key = models.CharField(max_length=40, unique=True, db_index=True)
+    visitor_name = models.CharField(max_length=100, blank=True)
+    telegram_message_id = models.IntegerField(null=True, blank=True)
+    is_active = models.BooleanField(default=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name = "Chat Session"
+        verbose_name_plural = "Chat Sessions"
+
+    def __str__(self):
+        return f"Chat #{self.id} ({self.visitor_name or 'Anonymous'})"
+
+
+class ChatMessage(models.Model):
+    SENDER_VISITOR = "visitor"
+    SENDER_ADMIN = "admin"
+    SENDER_CHOICES = [(SENDER_VISITOR, "Відвідувач"), (SENDER_ADMIN, "Адмін")]
+
+    session = models.ForeignKey(ChatSession, on_delete=models.CASCADE, related_name="messages")
+    sender = models.CharField(max_length=10, choices=SENDER_CHOICES)
+    text = models.TextField()
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["created_at"]
+        verbose_name = "Chat Message"
+        verbose_name_plural = "Chat Messages"
+
+    def __str__(self):
+        return f"{self.sender}: {self.text[:50]}"

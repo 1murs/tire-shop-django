@@ -3,8 +3,9 @@ from django.core.paginator import Paginator
 from django.db.models import Q
 from django.http import JsonResponse
 from django.shortcuts import render, get_object_or_404, redirect
+from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_POST
-from .models import Tire, Disk, CarFitment
+from .models import Tire, Disk, CarFitment, ChatSession, ChatMessage
 
 
 def about(request):
@@ -73,34 +74,34 @@ def tire_list(request):
     tires_qs = Tire.objects.select_related("brand").all()
 
     # Get filter values from request
-    diameter = request.GET.get("diameter")
-    width = request.GET.get("width")
-    profile = request.GET.get("profile")
-    season = request.GET.get("season")
-    brand = request.GET.get("brand")
-    load_index = request.GET.get("load_index")
-    speed_index = request.GET.get("speed_index")
-    studded = request.GET.get("studded")
+    diameters = request.GET.getlist("diameter")
+    widths = request.GET.getlist("width")
+    profiles = request.GET.getlist("profile")
+    seasons = request.GET.getlist("season")
+    brands = request.GET.getlist("brand")
+    load_indices = request.GET.getlist("load_index")
+    speed_indices = request.GET.getlist("speed_index")
+    studdeds = request.GET.getlist("studded")
     price_min = request.GET.get("price_min")
     price_max = request.GET.get("price_max")
 
     # Apply filters
-    if diameter:
-        tires_qs = tires_qs.filter(diameter=diameter)
-    if width:
-        tires_qs = tires_qs.filter(width=width)
-    if profile:
-        tires_qs = tires_qs.filter(profile=profile)
-    if season:
-        tires_qs = tires_qs.filter(season=season)
-    if brand:
-        tires_qs = tires_qs.filter(brand__slug=brand)
-    if load_index:
-        tires_qs = tires_qs.filter(load_index=load_index)
-    if speed_index:
-        tires_qs = tires_qs.filter(speed_index=speed_index)
-    if studded:
-        tires_qs = tires_qs.filter(studded=studded)
+    if diameters:
+        tires_qs = tires_qs.filter(diameter__in=diameters)
+    if widths:
+        tires_qs = tires_qs.filter(width__in=widths)
+    if profiles:
+        tires_qs = tires_qs.filter(profile__in=profiles)
+    if seasons:
+        tires_qs = tires_qs.filter(season__in=seasons)
+    if brands:
+        tires_qs = tires_qs.filter(brand__slug__in=brands)
+    if load_indices:
+        tires_qs = tires_qs.filter(load_index__in=load_indices)
+    if speed_indices:
+        tires_qs = tires_qs.filter(speed_index__in=speed_indices)
+    if studdeds:
+        tires_qs = tires_qs.filter(studded__in=studdeds)
     if price_min:
         tires_qs = tires_qs.filter(price__gte=price_min)
     if price_max:
@@ -110,29 +111,34 @@ def tire_list(request):
     from .models import Brand
     all_tires = Tire.objects.all()
     filter_options = {
-        "diameters": sorted(set(all_tires.values_list("diameter", flat=True))),
-        "widths": sorted(set(all_tires.values_list("width", flat=True))),
-        "profiles": sorted(set(all_tires.values_list("profile", flat=True))),
+        "diameters": sorted(v for v in set(all_tires.values_list("diameter", flat=True)) if v),
+        "widths": sorted(v for v in set(all_tires.values_list("width", flat=True)) if v),
+        "profiles": sorted(v for v in set(all_tires.values_list("profile", flat=True)) if v),
         "seasons": Tire.SEASON_CHOICES,
         "brands": Brand.objects.filter(tires__isnull=False).distinct().order_by("name"),
-        "load_indices": sorted(set(all_tires.values_list("load_index", flat=True))),
-        "speed_indices": sorted(set(all_tires.values_list("speed_index", flat=True))),
+        "load_indices": sorted(v for v in set(all_tires.values_list("load_index", flat=True)) if v),
+        "speed_indices": sorted(v for v in set(all_tires.values_list("speed_index", flat=True)) if v),
         "studded_choices": Tire.STUDDED_CHOICES,
     }
 
     # Current filter values for template
     current_filters = {
-        "diameter": diameter or "",
-        "width": width or "",
-        "profile": profile or "",
-        "season": season or "",
-        "brand": brand or "",
-        "load_index": load_index or "",
-        "speed_index": speed_index or "",
-        "studded": studded or "",
+        "diameters": diameters,
+        "widths": widths,
+        "profiles": profiles,
+        "seasons": seasons,
+        "brands": brands,
+        "load_indices": load_indices,
+        "speed_indices": speed_indices,
+        "studdeds": studdeds,
         "price_min": price_min or "",
         "price_max": price_max or "",
     }
+
+    # Build query string for pagination (without page param)
+    filter_params = request.GET.copy()
+    filter_params.pop("page", None)
+    filter_query_string = filter_params.urlencode()
 
     paginator = Paginator(tires_qs, 15)
     page_number = request.GET.get("page")
@@ -142,6 +148,7 @@ def tire_list(request):
         "tires": tires,
         "filter_options": filter_options,
         "current_filters": current_filters,
+        "filter_query_string": filter_query_string,
     }
     return render(request, "catalog/tire_list.html", context)
 
@@ -151,31 +158,31 @@ def disk_list(request):
     disks_qs = Disk.objects.select_related("brand").all()
 
     # Get filter values from request
-    diameter = request.GET.get("diameter")
-    width = request.GET.get("width")
-    pcd = request.GET.get("pcd")
-    dia = request.GET.get("dia")
-    et = request.GET.get("et")
-    disk_type = request.GET.get("type")
-    brand = request.GET.get("brand")
+    diameters = request.GET.getlist("diameter")
+    widths = request.GET.getlist("width")
+    pcds = request.GET.getlist("pcd")
+    dias = request.GET.getlist("dia")
+    ets = request.GET.getlist("et")
+    disk_types = request.GET.getlist("type")
+    brands = request.GET.getlist("brand")
     price_min = request.GET.get("price_min")
     price_max = request.GET.get("price_max")
 
     # Apply filters
-    if diameter:
-        disks_qs = disks_qs.filter(diameter=diameter)
-    if width:
-        disks_qs = disks_qs.filter(width=width)
-    if pcd:
-        disks_qs = disks_qs.filter(pcd=pcd)
-    if dia:
-        disks_qs = disks_qs.filter(dia=dia)
-    if et:
-        disks_qs = disks_qs.filter(et=et)
-    if disk_type:
-        disks_qs = disks_qs.filter(disk_type=disk_type)
-    if brand:
-        disks_qs = disks_qs.filter(brand__slug=brand)
+    if diameters:
+        disks_qs = disks_qs.filter(diameter__in=diameters)
+    if widths:
+        disks_qs = disks_qs.filter(width__in=widths)
+    if pcds:
+        disks_qs = disks_qs.filter(pcd__in=pcds)
+    if dias:
+        disks_qs = disks_qs.filter(dia__in=dias)
+    if ets:
+        disks_qs = disks_qs.filter(et__in=ets)
+    if disk_types:
+        disks_qs = disks_qs.filter(disk_type__in=disk_types)
+    if brands:
+        disks_qs = disks_qs.filter(brand__slug__in=brands)
     if price_min:
         disks_qs = disks_qs.filter(price__gte=price_min)
     if price_max:
@@ -185,27 +192,32 @@ def disk_list(request):
     from .models import Brand
     all_disks = Disk.objects.all()
     filter_options = {
-        "diameters": sorted(set(all_disks.values_list("diameter", flat=True))),
-        "widths": sorted(set(all_disks.values_list("width", flat=True))),
-        "pcds": sorted(set(all_disks.values_list("pcd", flat=True))),
-        "dias": sorted(set(all_disks.values_list("dia", flat=True))),
-        "ets": sorted(set(all_disks.values_list("et", flat=True))),
+        "diameters": sorted(v for v in set(all_disks.values_list("diameter", flat=True)) if v),
+        "widths": sorted(v for v in set(all_disks.values_list("width", flat=True)) if v),
+        "pcds": sorted(v for v in set(all_disks.values_list("pcd", flat=True)) if v),
+        "dias": sorted(v for v in set(all_disks.values_list("dia", flat=True)) if v),
+        "ets": sorted(v for v in set(all_disks.values_list("et", flat=True)) if v),
         "types": Disk.TYPE_CHOICES,
         "brands": Brand.objects.filter(disks__isnull=False).distinct().order_by("name"),
     }
 
     # Current filter values for template
     current_filters = {
-        "diameter": diameter or "",
-        "width": width or "",
-        "pcd": pcd or "",
-        "dia": dia or "",
-        "et": et or "",
-        "type": disk_type or "",
-        "brand": brand or "",
+        "diameters": diameters,
+        "widths": widths,
+        "pcds": pcds,
+        "dias": dias,
+        "ets": ets,
+        "types": disk_types,
+        "brands": brands,
         "price_min": price_min or "",
         "price_max": price_max or "",
     }
+
+    # Build query string for pagination (without page param)
+    filter_params = request.GET.copy()
+    filter_params.pop("page", None)
+    filter_query_string = filter_params.urlencode()
 
     paginator = Paginator(disks_qs, 15)
     page_number = request.GET.get("page")
@@ -215,6 +227,7 @@ def disk_list(request):
         "disks": disks,
         "filter_options": filter_options,
         "current_filters": current_filters,
+        "filter_query_string": filter_query_string,
     }
     return render(request, "catalog/disk_list.html", context)
 
@@ -858,3 +871,137 @@ def checkout_submit(request):
 
     except Exception as e:
         return JsonResponse({"success": False, "error": str(e)})
+
+
+# ─── Live Chat ─────────────────────────────────────────
+
+@require_POST
+def chat_send(request):
+    """Handle visitor chat message (AJAX)."""
+    from . import telegram_bot
+
+    try:
+        data = json.loads(request.body)
+        text = data.get("text", "").strip()
+        name = data.get("name", "").strip()
+
+        if not text:
+            return JsonResponse({"success": False, "error": "Порожнє повідомлення"})
+
+        if not request.session.session_key:
+            request.session.create()
+
+        session_key = request.session.session_key
+        chat_session, created = ChatSession.objects.get_or_create(
+            session_key=session_key,
+            defaults={"visitor_name": name, "is_active": True},
+        )
+
+        if name and chat_session.visitor_name != name:
+            chat_session.visitor_name = name
+            chat_session.save(update_fields=["visitor_name"])
+
+        msg = ChatMessage.objects.create(
+            session=chat_session,
+            sender=ChatMessage.SENDER_VISITOR,
+            text=text,
+        )
+
+        telegram_bot.send_to_admin(chat_session, text)
+
+        return JsonResponse({
+            "success": True,
+            "message": {
+                "id": msg.id,
+                "sender": msg.sender,
+                "text": msg.text,
+                "created_at": msg.created_at.isoformat(),
+            },
+        })
+    except Exception as e:
+        return JsonResponse({"success": False, "error": str(e)})
+
+
+def chat_messages(request):
+    """Return chat messages for current session (AJAX, polling)."""
+    if not request.session.session_key:
+        return JsonResponse({"messages": []})
+
+    try:
+        chat_session = ChatSession.objects.get(session_key=request.session.session_key)
+    except ChatSession.DoesNotExist:
+        return JsonResponse({"messages": []})
+
+    after = request.GET.get("after")
+    qs = chat_session.messages.all()
+    if after:
+        qs = qs.filter(id__gt=after)
+
+    messages = [
+        {
+            "id": m.id,
+            "sender": m.sender,
+            "text": m.text,
+            "created_at": m.created_at.isoformat(),
+        }
+        for m in qs
+    ]
+    return JsonResponse({"messages": messages})
+
+
+@csrf_exempt
+@require_POST
+def chat_telegram_webhook(request):
+    """Handle incoming Telegram webhook (admin replies)."""
+    import logging
+    logger = logging.getLogger("catalog")
+
+    try:
+        payload = json.loads(request.body)
+        logger.warning("Webhook received: %s", json.dumps(payload, ensure_ascii=False)[:500])
+
+        message = payload.get("message", {})
+
+        reply = message.get("reply_to_message")
+        if not reply:
+            logger.warning("Webhook: no reply_to_message")
+            return JsonResponse({"ok": True})
+
+        reply_message_id = reply.get("message_id")
+        text = message.get("text", "").strip()
+        logger.warning("Webhook: reply_to=%s, text=%s", reply_message_id, text)
+
+        if not text or not reply_message_id:
+            return JsonResponse({"ok": True})
+
+        import re
+        chat_session = None
+        try:
+            chat_session = ChatSession.objects.get(telegram_message_id=reply_message_id)
+            logger.warning("Webhook: found session by tg_msg_id #%s", chat_session.id)
+        except ChatSession.DoesNotExist:
+            # Try to find session by "Сесія #N" in bot message text
+            reply_text = reply.get("text", "")
+            match = re.search(r"Сесія #(\d+)", reply_text)
+            if match:
+                try:
+                    chat_session = ChatSession.objects.get(id=int(match.group(1)))
+                    logger.warning("Webhook: found session by text #%s", chat_session.id)
+                except ChatSession.DoesNotExist:
+                    pass
+
+        if not chat_session:
+            logger.warning("Webhook: no session for tg_msg_id=%s", reply_message_id)
+            return JsonResponse({"ok": True})
+
+        ChatMessage.objects.create(
+            session=chat_session,
+            sender=ChatMessage.SENDER_ADMIN,
+            text=text,
+        )
+        logger.warning("Webhook: admin message saved")
+
+        return JsonResponse({"ok": True})
+    except (json.JSONDecodeError, KeyError) as e:
+        logger.warning("Webhook error: %s", e)
+        return JsonResponse({"ok": True})
