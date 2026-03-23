@@ -1,5 +1,15 @@
 asgiref==3.11.0
 Django==5.1.15
+et_xmlfile==2.0.0
+gunicorn==25.0.2
+numpy==2.4.2
+openpyxl==3.1.5
+packaging==26.0
+pandas==3.0.0
 pillow==12.1.0
+python-dateutil==2.9.0.post0
+psycopg[binary]==3.3.3
 python-dotenv==1.2.1
+six==1.17.0
 sqlparse==0.5.5
+xlrd==2.0.2
