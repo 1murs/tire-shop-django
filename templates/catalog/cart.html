@@ -1,4 +1,5 @@
 {% extends 'base.html' %}
+{% load static catalog_extras %}
 
 {% block title %}
   Кошик - КМ/Ч 120
@@ -15,10 +16,10 @@
             {% for item in items %}
               <div class="cart-item" data-type="{{ item.type }}" data-id="{{ item.product.id }}">
                 <div class="cart-item-image">
-                  {% if item.product.image %}
+                  {% if item.product.image|image_exists %}
                     <img src="{{ item.product.image.url }}" alt="{{ item.product }}" />
                   {% else %}
-                    <img src="https://picsum.photos/seed/{{ item.type }}{{ item.product.id }}/120/120" alt="{{ item.product }}" />
+                    <img src="{% static 'images/no-image.svg' %}" alt="{{ item.product }}" />
                   {% endif %}
                 </div>
                 <div class="cart-item-info">

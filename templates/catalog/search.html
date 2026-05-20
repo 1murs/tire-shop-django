@@ -1,4 +1,5 @@
 {% extends 'base.html' %}
+{% load static catalog_extras %}
 
 {% block title %}
   Пошук: {{ query }} - КМ/Ч 120
@@ -42,10 +43,10 @@
               <a href="{% url 'catalog:tire_detail' tire.slug %}" class="product-card-link">
                 <div class="product-card">
                   <div class="product-image">
-                    {% if tire.image %}
+                    {% if tire.image|image_exists %}
                       <img src="{{ tire.image.url }}" alt="{{ tire }}" />
                     {% else %}
-                      <img src="https://picsum.photos/seed/tire{{ tire.id }}/400/400" alt="{{ tire }}" />
+                      <img src="{% static 'images/no-image.svg' %}" alt="{{ tire }}" />
                     {% endif %}
                   </div>
                   <h3 class="product-name">{{ tire }}</h3>
@@ -70,10 +71,10 @@
               <a href="{% url 'catalog:disk_detail' disk.slug %}" class="product-card-link">
                 <div class="product-card">
                   <div class="product-image">
-                    {% if disk.image %}
+                    {% if disk.image|image_exists %}
                       <img src="{{ disk.image.url }}" alt="{{ disk }}" />
                     {% else %}
-                      <img src="https://picsum.photos/seed/disk{{ disk.id }}/400/400" alt="{{ disk }}" />
+                      <img src="{% static 'images/no-image.svg' %}" alt="{{ disk }}" />
                     {% endif %}
                   </div>
                   <h3 class="product-name">{{ disk }}</h3>

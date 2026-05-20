@@ -3,6 +3,7 @@ from django.urls import path
 from django.shortcuts import render, redirect
 from django.contrib import messages
 from django.http import JsonResponse
+from decimal import Decimal
 from .models import Brand, Tire, Disk, Supplier
 
 import json
@@ -19,7 +20,7 @@ class SupplierAdmin(admin.ModelAdmin):
     search_fields = ["name", "code"]
     list_editable = ["markup_percent", "delivery_days", "is_active"]
     ordering = ["name"]
-    actions = ["recalculate_prices"]
+    actions = ["recalculate_prices", "set_markup"]
 
     fieldsets = (
         ("Основна інформація", {
@@ -58,6 +59,42 @@ class SupplierAdmin(admin.ModelAdmin):
             f"Ціни перераховано: {total_tires} шин, {total_disks} дисків",
             messages.SUCCESS
         )
+
+    @admin.action(description="Встановити націнку для обраних постачальників")
+    def set_markup(self, request, queryset):
+        from .import_service import recalculate_prices_for_supplier
+
+        if "apply" in request.POST:
+            markup = request.POST.get("markup_percent", "").strip()
+            try:
+                markup = Decimal(markup)
+            except Exception:
+                self.message_user(request, "Невірне значення націнки", messages.ERROR)
+                return
+
+            count = queryset.update(markup_percent=markup)
+
+            total_tires = 0
+            total_disks = 0
+            for supplier in queryset:
+                tires, disks = recalculate_prices_for_supplier(supplier)
+                total_tires += tires
+                total_disks += disks
+
+            self.message_user(
+                request,
+                f"Націнку {markup}% встановлено для {count} постачальників. "
+                f"Перераховано: {total_tires} шин, {total_disks} дисків",
+                messages.SUCCESS
+            )
+            return
+
+        return render(request, "admin/set_markup.html", {
+            "title": "Встановити націнку",
+            "suppliers": queryset,
+            "action": "set_markup",
+            "opts": self.model._meta,
+        })
 
 
 @admin.register(Brand)
@@ -156,6 +193,7 @@ class CatalogAdminSite(admin.AdminSite):
             path('import-prices/', self.admin_view(self.import_prices_view), name='import_prices'),
             path('import-prices/start/', self.admin_view(self.start_import_view), name='start_import'),
             path('import-progress/<str:task_id>/', self.admin_view(self.import_progress_view), name='import_progress'),
+            path('export-no-images/', self.admin_view(self.export_no_images_view), name='export_no_images'),
             path('error-logs/', self.admin_view(self.error_logs_view), name='error_logs'),
             path('recalculate-all-prices/', self.admin_view(self.recalculate_all_prices_view), name='recalculate_all_prices'),
             path('xml-feeds/', self.admin_view(self.xml_feeds_view), name='xml_feeds'),
@@ -172,7 +210,7 @@ class CatalogAdminSite(admin.AdminSite):
             json.dump(data, f)
         os.replace(tmp_file, progress_file)
 
-    def _run_import(self, task_id, file_path, import_type):
+    def _run_import(self, task_id, file_path, import_type, delete_missing=False):
         import django
         django.setup()
         from .import_service import import_tires, import_disks
@@ -185,15 +223,16 @@ class CatalogAdminSite(admin.AdminSite):
                 'created': info['created'],
                 'updated': info['updated'],
                 'skipped': info['skipped'],
+                'deleted': info.get('deleted', 0),
                 'errors_count': info['errors_count'],
                 'message': f"Обробка рядка {info['current']} з {info['total']}...",
             })
 
         try:
             if import_type == 'tires':
-                result = import_tires(file_path, progress_callback=progress_callback)
+                result = import_tires(file_path, progress_callback=progress_callback, delete_missing=delete_missing)
             else:
-                result = import_disks(file_path, progress_callback=progress_callback)
+                result = import_disks(file_path, progress_callback=progress_callback, delete_missing=delete_missing)
 
             self._write_progress(task_id, {
                 'status': 'completed',
@@ -202,6 +241,7 @@ class CatalogAdminSite(admin.AdminSite):
                 'created': result['created'],
                 'updated': result['updated'],
                 'skipped': result['skipped'],
+                'deleted': result.get('deleted', 0),
                 'errors_count': len(result['errors']),
                 'errors': result['errors'],
                 'message': 'Імпорт завершено!',
@@ -246,6 +286,7 @@ class CatalogAdminSite(admin.AdminSite):
 
         import_type = request.POST.get('import_type')
         excel_file = request.FILES.get('excel_file')
+        delete_missing = request.POST.get('delete_missing') == 'on'
 
         if not excel_file:
             return JsonResponse({'error': 'Будь ласка, виберіть файл'}, status=400)
@@ -270,6 +311,7 @@ class CatalogAdminSite(admin.AdminSite):
             'created': 0,
             'updated': 0,
             'skipped': 0,
+            'deleted': 0,
             'errors_count': 0,
             'message': 'Читання файлу...',
         })
@@ -278,7 +320,7 @@ class CatalogAdminSite(admin.AdminSite):
 
         thread = threading.Thread(
             target=self._run_import,
-            args=(task_id, tmp_path, import_type),
+            args=(task_id, tmp_path, import_type, delete_missing),
             daemon=True,
         )
         thread.start()
@@ -314,6 +356,78 @@ class CatalogAdminSite(admin.AdminSite):
 
         messages.success(request, f"Ціни перераховано: {total_tires} шин, {total_disks} дисків")
         return redirect('admin:import_prices')
+
+    def export_no_images_view(self, request):
+        from django.http import HttpResponse
+        from django.conf import settings as conf_settings
+        from openpyxl import Workbook
+        from pathlib import Path
+
+        export_type = request.GET.get('type', 'all')
+        media_root = Path(conf_settings.MEDIA_ROOT)
+
+        wb = Workbook()
+        tires_count = 0
+        disks_count = 0
+
+        if export_type in ('tires', 'all'):
+            ws = wb.active if export_type == 'tires' else wb.create_sheet()
+            ws.title = 'Шини без картинок'
+            ws.append(['Бренд', 'Модель', 'Ширина', 'Профіль', 'Діаметр', 'Сезон', 'Артикул', 'Постачальник', 'Ціна', 'Назва картинки'])
+
+            tires = Tire.objects.select_related('brand', 'supplier').order_by('brand__name', 'model_name')
+            for t in tires:
+                has_file = t.image and (media_root / str(t.image)).exists()
+                if not has_file:
+                    ws.append([
+                        t.brand.name if t.brand else '',
+                        t.model_name,
+                        t.width,
+                        t.profile,
+                        t.diameter,
+                        t.get_season_display(),
+                        t.article,
+                        t.supplier.name if t.supplier else '',
+                        float(t.price) if t.price else 0,
+                        str(t.image) if t.image else '',
+                    ])
+                    tires_count += 1
+
+        if export_type in ('disks', 'all'):
+            if export_type == 'all':
+                ws = wb.create_sheet(title='Диски без картинок')
+            else:
+                ws = wb.active
+                ws.title = 'Диски без картинок'
+            ws.append(['Бренд', 'Модель', 'Ширина', 'Діаметр', 'Болти', 'PCD', 'ET', 'Тип', 'Артикул', 'Постачальник', 'Ціна', 'Назва картинки'])
+
+            disks = Disk.objects.select_related('brand', 'supplier').order_by('brand__name', 'model_name')
+            for d in disks:
+                has_file = d.image and (media_root / str(d.image)).exists()
+                if not has_file:
+                    ws.append([
+                        d.brand.name if d.brand else '',
+                        d.model_name,
+                        float(d.width) if d.width else 0,
+                        d.diameter,
+                        d.bolts,
+                        float(d.pcd) if d.pcd else 0,
+                        d.et,
+                        d.get_disk_type_display(),
+                        d.article,
+                        d.supplier.name if d.supplier else '',
+                        float(d.price) if d.price else 0,
+                        str(d.image) if d.image else '',
+                    ])
+                    disks_count += 1
+
+        if export_type == 'all' and wb.sheetnames[0] == 'Sheet':
+            del wb[wb.sheetnames[0]]
+
+        response = HttpResponse(content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+        response['Content-Disposition'] = f'attachment; filename="products_no_images_{tires_count}t_{disks_count}d.xlsx"'
+        wb.save(response)
+        return response
 
     def error_logs_view(self, request):
         from django.conf import settings

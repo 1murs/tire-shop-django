@@ -1,4 +1,5 @@
 {% extends 'base.html' %}
+{% load catalog_extras %}
 
 {% block title %}
   {{ tire }} - КМ/Ч 120
@@ -17,7 +18,7 @@
 
       <div class="product-detail">
         <div class="product-detail-image">
-          {% if tire.image %}
+          {% if tire.image|image_exists %}
             <img src="/media/{{ tire.image }}" alt="{{ tire }}" />
           {% else %}
             <img src="/static/images/no-image.svg" alt="Немає фото" />

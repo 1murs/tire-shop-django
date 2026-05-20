@@ -41,14 +41,19 @@ def parse_int(value):
         return None
 
 
-def check_image_exists(image_path):
-    """Check if image file exists"""
+def clean_image_path(image_path):
+    """Clean image path from Excel"""
     if not image_path or image_path == 'nan' or pd.isna(image_path):
         return ''
+    return str(image_path).strip()
+
+
+def image_file_exists(image_path):
+    """Check if image file exists on disk"""
+    if not image_path:
+        return False
     media_root = Path(settings.MEDIA_ROOT)
-    if (media_root / str(image_path)).exists():
-        return str(image_path)
-    return ''
+    return (media_root / str(image_path)).exists()
 
 
 def is_preorder_supplier(supplier_code):
@@ -113,7 +118,7 @@ def recalculate_prices_for_supplier(supplier):
     return updated_tires, updated_disks
 
 
-def import_tires(file_path, progress_callback=None):
+def import_tires(file_path, progress_callback=None, delete_missing=False):
     """Import tires from Excel file"""
     df = pd.read_excel(file_path, header=None)
     total = len(df)
@@ -121,7 +126,9 @@ def import_tires(file_path, progress_callback=None):
     created = 0
     updated = 0
     skipped = 0
+    deleted = 0
     errors = []
+    imported_ids = set()
 
     for idx, row in df.iterrows():
         try:
@@ -223,11 +230,12 @@ def import_tires(file_path, progress_callback=None):
                 tire.in_stock = in_stock
                 tire.supplier = supplier
                 tire.studded = studded
-                image_path = check_image_exists(image)
-                if image_path:
-                    tire.image = image_path
+                image_name = clean_image_path(image)
+                if image_name:
+                    tire.image = image_name
                 tire.save()
                 updated += 1
+                imported_ids.add(tire.id)
             else:
                 # Create new
                 base_slug = slugify(f"{brand_name}-{model_name}-{width}-{profile}-{diameter}", allow_unicode=True)
@@ -254,9 +262,10 @@ def import_tires(file_path, progress_callback=None):
                     stock_quantity=stock_qty,
                     in_stock=in_stock,
                     supplier=supplier,
-                    image=check_image_exists(image)
+                    image=clean_image_path(image)
                 )
                 created += 1
+                imported_ids.add(tire.id)
 
         except Exception as e:
             errors.append(f"Row {idx}: {str(e)}")
@@ -268,19 +277,26 @@ def import_tires(file_path, progress_callback=None):
                 'created': created,
                 'updated': updated,
                 'skipped': skipped,
+                'deleted': deleted,
                 'errors_count': len(errors),
             })
+
+    if delete_missing and imported_ids:
+        to_delete = Tire.objects.exclude(id__in=imported_ids)
+        deleted = to_delete.count()
+        to_delete.delete()
 
     return {
         'created': created,
         'updated': updated,
         'skipped': skipped,
+        'deleted': deleted,
         'errors': errors[:20],
         'total_rows': len(df)
     }
 
 
-def import_disks(file_path, progress_callback=None):
+def import_disks(file_path, progress_callback=None, delete_missing=False):
     """Import disks from Excel file"""
     df = pd.read_excel(file_path, header=None)
     total = len(df)
@@ -288,7 +304,9 @@ def import_disks(file_path, progress_callback=None):
     created = 0
     updated = 0
     skipped = 0
+    deleted = 0
     errors = []
+    imported_ids = set()
 
     def map_disk_type(type_str):
         if pd.isna(type_str):
@@ -380,13 +398,14 @@ def import_disks(file_path, progress_callback=None):
                 disk.stock_quantity = stock_qty
                 disk.in_stock = in_stock
                 disk.supplier = supplier
-                image_path = check_image_exists(image)
-                if image_path:
-                    disk.image = image_path
+                image_name = clean_image_path(image)
+                if image_name:
+                    disk.image = image_name
                 if color:
                     disk.color = color
                 disk.save()
                 updated += 1
+                imported_ids.add(disk.id)
             else:
                 # Create new
                 base_slug = slugify(f"{brand_name}-{model_name}-{width}x{diameter}-{bolts}x{pcd}-et{et or 0}", allow_unicode=True)
@@ -414,9 +433,10 @@ def import_disks(file_path, progress_callback=None):
                     stock_quantity=stock_qty,
                     in_stock=in_stock,
                     supplier=supplier,
-                    image=check_image_exists(image)
+                    image=clean_image_path(image)
                 )
                 created += 1
+                imported_ids.add(disk.id)
 
         except Exception as e:
             errors.append(f"Row {idx}: {str(e)}")
@@ -428,13 +448,20 @@ def import_disks(file_path, progress_callback=None):
                 'created': created,
                 'updated': updated,
                 'skipped': skipped,
+                'deleted': deleted,
                 'errors_count': len(errors),
             })
+
+    if delete_missing and imported_ids:
+        to_delete = Disk.objects.exclude(id__in=imported_ids)
+        deleted = to_delete.count()
+        to_delete.delete()
 
     return {
         'created': created,
         'updated': updated,
         'skipped': skipped,
+        'deleted': deleted,
         'errors': errors[:20],
         'total_rows': len(df)
     }

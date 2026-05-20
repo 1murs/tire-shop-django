@@ -10,10 +10,22 @@
   var chatLastId = 0;
   var chatUnreadCount = 0;
 
+  setTimeout(function () {
+    var bubble = document.getElementById('chatBubble');
+    if (bubble && !chatOpen) {
+      bubble.classList.add('show');
+      setTimeout(function () { bubble.classList.remove('show'); }, 5000);
+    }
+  }, 5000);
+
   window.toggleChat = function () {
     chatOpen = !chatOpen;
     document.getElementById('chatPanel').classList.toggle('open', chatOpen);
     document.getElementById('chatTrigger').classList.toggle('active', chatOpen);
+    var bubble = document.getElementById('chatBubble');
+    if (bubble) bubble.classList.remove('show');
+    var icon = document.getElementById('chatTriggerIcon');
+    if (icon) icon.classList.remove('pulse');
     if (chatOpen) {
       chatUnreadCount = 0;
       updateUnreadBadge();

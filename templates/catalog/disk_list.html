@@ -1,4 +1,5 @@
 {% extends 'base.html' %}
+{% load catalog_extras %}
 
 {% block title %}
   Диски - КМ/Ч 120
@@ -177,7 +178,7 @@
               <a href="{% url 'catalog:disk_detail' disk.slug %}" class="product-card-link">
                 <div class="product-card">
                   <div class="product-image">
-                    {% if disk.image %}
+                    {% if disk.image|image_exists %}
                       <img src="/media/{{ disk.image }}" alt="{{ disk }}" />
                     {% else %}
                       <img src="/static/images/no-image.svg" alt="Немає фото" />

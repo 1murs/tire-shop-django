@@ -37,7 +37,7 @@
       </div>
     </div>
     <p id="progress-message" style="margin: 0 0 8px 0; color: #555;"></p>
-    <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-top: 12px;">
+    <div style="display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; margin-top: 12px;">
       <div style="text-align: center; padding: 8px; background: white; border-radius: 4px; border: 1px solid #ddd;">
         <div style="font-size: 20px; font-weight: bold; color: #28a745;" id="stat-created">0</div>
         <div style="font-size: 11px; color: #666;">Створено</div>
@@ -45,6 +45,10 @@
       <div style="text-align: center; padding: 8px; background: white; border-radius: 4px; border: 1px solid #ddd;">
         <div style="font-size: 20px; font-weight: bold; color: #417690;" id="stat-updated">0</div>
         <div style="font-size: 11px; color: #666;">Оновлено</div>
+      </div>
+      <div style="text-align: center; padding: 8px; background: white; border-radius: 4px; border: 1px solid #ddd;">
+        <div style="font-size: 20px; font-weight: bold; color: #e67e22;" id="stat-deleted">0</div>
+        <div style="font-size: 11px; color: #666;">Видалено</div>
       </div>
       <div style="text-align: center; padding: 8px; background: white; border-radius: 4px; border: 1px solid #ddd;">
         <div style="font-size: 20px; font-weight: bold; color: #6c757d;" id="stat-skipped">0</div>
@@ -79,12 +83,39 @@
              style="width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px; background: white;">
     </div>
 
+    <div style="margin-bottom: 15px; padding: 12px; background: #fff3cd; border: 1px solid #ffc107; border-radius: 4px;">
+      <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
+        <input type="checkbox" name="delete_missing" id="delete_missing">
+        <strong>Видалити товари яких немає в прайсі</strong>
+      </label>
+      <p style="margin: 5px 0 0 26px; font-size: 12px; color: #856404;">
+        Товари які є в базі, але відсутні в цьому файлі — будуть видалені
+      </p>
+    </div>
+
     <button type="submit" id="submit-btn" style="background: #417690; color: white; padding: 10px 20px; border: none; border-radius: 4px; cursor: pointer; font-size: 14px;">
       Імпортувати
     </button>
   </form>
 
-  <div style="margin-top: 30px; display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+  <div style="margin-top: 30px; padding: 15px; background: #f0f4ff; border: 1px solid #b3c6ff; border-radius: 5px;">
+    <h3 style="margin-top: 0;">Товари без картинок</h3>
+    <p style="margin-bottom: 12px;">Скачайте список товарів на які потрібно додати фото:</p>
+    <a href="{% url 'admin:export_no_images' %}?type=tires"
+       style="display: inline-block; background: #417690; color: white; padding: 8px 16px; border-radius: 4px; text-decoration: none; margin-right: 8px;">
+      Шини без фото
+    </a>
+    <a href="{% url 'admin:export_no_images' %}?type=disks"
+       style="display: inline-block; background: #417690; color: white; padding: 8px 16px; border-radius: 4px; text-decoration: none; margin-right: 8px;">
+      Диски без фото
+    </a>
+    <a href="{% url 'admin:export_no_images' %}?type=all"
+       style="display: inline-block; background: #28a745; color: white; padding: 8px 16px; border-radius: 4px; text-decoration: none;">
+      Все разом
+    </a>
+  </div>
+
+  <div style="margin-top: 20px; display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
     <div style="padding: 15px; background: #fff; border: 1px solid #ddd; border-radius: 5px;">
       <h3 style="margin-top: 0;">Статистика</h3>
       <p><strong>Шин в базі:</strong> {{ tire_count }}</p>
@@ -158,7 +189,7 @@
     progressBar.style.width = '0%';
     progressBar.textContent = '0%';
     progressMessage.textContent = 'Завантаження файлу...';
-    updateStats(0, 0, 0, 0);
+    updateStats(0, 0, 0, 0, 0);
 
     var formData = new FormData(form);
 
@@ -202,14 +233,14 @@
             progressBar.style.width = pct + '%';
             progressBar.textContent = pct + '%';
             progressMessage.textContent = data.message || '';
-            updateStats(data.created, data.updated, data.skipped, data.errors_count);
+            updateStats(data.created, data.updated, data.deleted || 0, data.skipped, data.errors_count);
           } else if (data.status === 'completed') {
             clearInterval(pollInterval);
             progressBar.style.width = '100%';
             progressBar.textContent = '100%';
             progressBar.style.background = '#28a745';
             progressMessage.textContent = 'Імпорт завершено!';
-            updateStats(data.created, data.updated, data.skipped, data.errors_count);
+            updateStats(data.created, data.updated, data.deleted || 0, data.skipped, data.errors_count);
             showResult(data);
             resetForm();
           } else if (data.status === 'error') {
@@ -228,9 +259,10 @@
     }, 1000);
   }
 
-  function updateStats(created, updated, skipped, errors) {
+  function updateStats(created, updated, deleted, skipped, errors) {
     document.getElementById('stat-created').textContent = created;
     document.getElementById('stat-updated').textContent = updated;
+    document.getElementById('stat-deleted').textContent = deleted;
     document.getElementById('stat-skipped').textContent = skipped;
     document.getElementById('stat-errors').textContent = errors;
   }
@@ -244,6 +276,7 @@
     html += '<p><strong>Всього рядків:</strong> ' + data.total + '</p>';
     html += '<p><strong>Створено:</strong> ' + data.created + '</p>';
     html += '<p><strong>Оновлено:</strong> ' + data.updated + '</p>';
+    if (data.deleted) html += '<p><strong>Видалено:</strong> ' + data.deleted + '</p>';
     html += '<p><strong>Пропущено:</strong> ' + data.skipped + '</p>';
 
     if (hasErrors) {

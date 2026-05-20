@@ -1,0 +1,34 @@
+{% extends "admin/base_site.html" %}
+{% load i18n %}
+
+{% block content %}
+<form method="post">
+  {% csrf_token %}
+
+  <h2>Встановити націнку для обраних постачальників:</h2>
+
+  <ul style="margin: 1rem 0;">
+    {% for supplier in suppliers %}
+      <li>{{ supplier.name }} (поточна: {{ supplier.markup_percent }}%)</li>
+      <input type="hidden" name="_selected_action" value="{{ supplier.pk }}">
+    {% endfor %}
+  </ul>
+
+  <div style="margin: 1.5rem 0;">
+    <label for="markup_percent" style="font-weight: bold; font-size: 1.1rem;">Нова націнка (%):</label>
+    <br><br>
+    <input type="number" name="markup_percent" id="markup_percent" step="0.01" min="0" max="999"
+           style="padding: 0.5rem; font-size: 1.1rem; width: 150px;" required>
+  </div>
+
+  <input type="hidden" name="action" value="{{ action }}">
+  <input type="hidden" name="apply" value="1">
+
+  <button type="submit" class="button" style="padding: 0.5rem 2rem; font-size: 1rem;">
+    Застосувати
+  </button>
+  <a href="{% url 'admin:catalog_supplier_changelist' %}" class="button" style="padding: 0.5rem 2rem; font-size: 1rem; margin-left: 1rem;">
+    Скасувати
+  </a>
+</form>
+{% endblock %}

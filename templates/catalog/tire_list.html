@@ -1,4 +1,5 @@
 {% extends 'base.html' %}
+{% load catalog_extras %}
 
 {% block title %}
   Шини - КМ/Ч 120
@@ -195,7 +196,7 @@
               <a href="{% url 'catalog:tire_detail' tire.slug %}" class="product-card-link">
                 <div class="product-card">
                   <div class="product-image">
-                    {% if tire.image %}
+                    {% if tire.image|image_exists %}
                       <img src="/media/{{ tire.image }}" alt="{{ tire }}" />
                     {% else %}
                       <img src="/static/images/no-image.svg" alt="Немає фото" />
