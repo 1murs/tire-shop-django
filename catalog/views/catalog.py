@@ -48,15 +48,15 @@ def tire_list(request):
     """List of all tires with pagination and filters."""
     tires_qs = Tire.objects.select_related("brand").all()
 
-    # Get filter values from request
-    diameters = request.GET.getlist("diameter")
-    widths = request.GET.getlist("width")
-    profiles = request.GET.getlist("profile")
-    seasons = request.GET.getlist("season")
-    brands = request.GET.getlist("brand")
-    load_indices = request.GET.getlist("load_index")
-    speed_indices = request.GET.getlist("speed_index")
-    studdeds = request.GET.getlist("studded")
+    # Get filter values from request (filter out empty strings)
+    diameters = [v for v in request.GET.getlist("diameter") if v]
+    widths = [v for v in request.GET.getlist("width") if v]
+    profiles = [v for v in request.GET.getlist("profile") if v]
+    seasons = [v for v in request.GET.getlist("season") if v]
+    brands = [v for v in request.GET.getlist("brand") if v]
+    load_indices = [v for v in request.GET.getlist("load_index") if v]
+    speed_indices = [v for v in request.GET.getlist("speed_index") if v]
+    studdeds = [v for v in request.GET.getlist("studded") if v]
     price_min = request.GET.get("price_min")
     price_max = request.GET.get("price_max")
 
@@ -131,14 +131,14 @@ def disk_list(request):
     """List of all disks with pagination and filters."""
     disks_qs = Disk.objects.select_related("brand").all()
 
-    # Get filter values from request
-    diameters = request.GET.getlist("diameter")
-    widths = request.GET.getlist("width")
-    pcds = request.GET.getlist("pcd")
-    dias = request.GET.getlist("dia")
-    ets = request.GET.getlist("et")
-    disk_types = request.GET.getlist("type")
-    brands = request.GET.getlist("brand")
+    # Get filter values from request (filter out empty strings)
+    diameters = [v for v in request.GET.getlist("diameter") if v]
+    widths = [v for v in request.GET.getlist("width") if v]
+    pcds = [v for v in request.GET.getlist("pcd") if v]
+    dias = [v for v in request.GET.getlist("dia") if v]
+    ets = [v for v in request.GET.getlist("et") if v]
+    disk_types = [v for v in request.GET.getlist("type") if v]
+    brands = [v for v in request.GET.getlist("brand") if v]
     price_min = request.GET.get("price_min")
     price_max = request.GET.get("price_max")
 

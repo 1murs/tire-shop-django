@@ -129,6 +129,7 @@ def import_tires(file_path, progress_callback=None, delete_missing=False):
     deleted = 0
     errors = []
     imported_ids = set()
+    skipped_rows = []
 
     for idx, row in df.iterrows():
         try:
@@ -137,6 +138,7 @@ def import_tires(file_path, progress_callback=None, delete_missing=False):
 
             if not brand_name or not model_name:
                 skipped += 1
+                skipped_rows.append({'row': idx + 1, 'brand': brand_name or '', 'model': model_name or '', 'reason': 'Немає бренду або моделі'})
                 continue
 
             # Parse values
@@ -178,6 +180,7 @@ def import_tires(file_path, progress_callback=None, delete_missing=False):
             # Skip if supplier is inactive
             if supplier_code and not supplier:
                 skipped += 1
+                skipped_rows.append({'row': idx + 1, 'brand': brand_name, 'model': model_name, 'reason': f'Постачальник неактивний: {supplier_code}'})
                 continue
 
             article = str(row[20]) if pd.notna(row[20]) and len(row) > 20 else None
@@ -186,6 +189,7 @@ def import_tires(file_path, progress_callback=None, delete_missing=False):
             # Skip if no purchase price
             if not purchase_price or purchase_price <= 0:
                 skipped += 1
+                skipped_rows.append({'row': idx + 1, 'brand': brand_name, 'model': model_name, 'reason': 'Немає ціни або ціна = 0'})
                 continue
 
             # Calculate selling price with markup
@@ -197,6 +201,7 @@ def import_tires(file_path, progress_callback=None, delete_missing=False):
             # Required fields
             if not all([width, profile, diameter]):
                 skipped += 1
+                skipped_rows.append({'row': idx + 1, 'brand': brand_name, 'model': model_name, 'reason': f'Немає обовязкових полів (ширина={width}, профіль={profile}, діаметр={diameter})'})
                 continue
 
             # Determine in_stock - check supplier code for "21 день"
@@ -292,6 +297,7 @@ def import_tires(file_path, progress_callback=None, delete_missing=False):
         'skipped': skipped,
         'deleted': deleted,
         'errors': errors[:20],
+        'skipped_rows': skipped_rows,
         'total_rows': len(df)
     }
 
@@ -307,6 +313,7 @@ def import_disks(file_path, progress_callback=None, delete_missing=False):
     deleted = 0
     errors = []
     imported_ids = set()
+    skipped_rows = []
 
     def map_disk_type(type_str):
         if pd.isna(type_str):
@@ -325,6 +332,7 @@ def import_disks(file_path, progress_callback=None, delete_missing=False):
 
             if not brand_name or not model_name:
                 skipped += 1
+                skipped_rows.append({'row': idx + 1, 'brand': brand_name or '', 'model': model_name or '', 'reason': 'Немає бренду або моделі'})
                 continue
 
             # Parse values
@@ -346,6 +354,7 @@ def import_disks(file_path, progress_callback=None, delete_missing=False):
             # Skip if supplier is inactive
             if supplier_code and not supplier:
                 skipped += 1
+                skipped_rows.append({'row': idx + 1, 'brand': brand_name, 'model': model_name, 'reason': f'Постачальник неактивний: {supplier_code}'})
                 continue
 
             article = str(row[20]) if pd.notna(row[20]) and len(row) > 20 else None
@@ -354,6 +363,7 @@ def import_disks(file_path, progress_callback=None, delete_missing=False):
             # Skip if no purchase price
             if not purchase_price or purchase_price <= 0:
                 skipped += 1
+                skipped_rows.append({'row': idx + 1, 'brand': brand_name, 'model': model_name, 'reason': 'Немає ціни або ціна = 0'})
                 continue
 
             # Calculate selling price with markup
@@ -365,6 +375,7 @@ def import_disks(file_path, progress_callback=None, delete_missing=False):
             # Required fields
             if not all([width, diameter, pcd, bolts]):
                 skipped += 1
+                skipped_rows.append({'row': idx + 1, 'brand': brand_name, 'model': model_name, 'reason': f'Немає обовязкових полів (ширина={width}, діаметр={diameter}, pcd={pcd}, болти={bolts})'})
                 continue
 
             # Determine in_stock - check supplier code for "21 день"
@@ -463,5 +474,6 @@ def import_disks(file_path, progress_callback=None, delete_missing=False):
         'skipped': skipped,
         'deleted': deleted,
         'errors': errors[:20],
+        'skipped_rows': skipped_rows,
         'total_rows': len(df)
     }

@@ -2912,7 +2912,7 @@ button {
     background: none;
     border: none;
     cursor: pointer;
-    transform: translateX(calc(100% - 52px));
+    transform: translateX(calc(100% - 68px));
     transition: transform 0.3s ease;
     padding: 0;
 }
@@ -2927,10 +2927,10 @@ button {
 
 .chat-trigger-icon {
     flex-shrink: 0;
-    width: 52px;
-    height: 52px;
+    width: 68px;
+    height: 68px;
     background: var(--primary);
-    border-radius: 26px 0 0 26px;
+    border-radius: 34px 0 0 34px;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -2963,7 +2963,7 @@ button {
 
 .chat-bubble {
     position: absolute;
-    bottom: 60px;
+    bottom: 76px;
     right: 0;
     background: #fff;
     color: #333;
@@ -3237,13 +3237,13 @@ button {
 @media (max-width: 768px) {
     .chat-trigger {
         bottom: 1rem;
-        transform: translateX(calc(100% - 44px));
+        transform: translateX(calc(100% - 56px));
     }
 
     .chat-trigger-icon {
-        width: 44px;
-        height: 44px;
-        border-radius: 22px 0 0 22px;
+        width: 56px;
+        height: 56px;
+        border-radius: 28px 0 0 28px;
     }
 
     .chat-trigger-icon svg {

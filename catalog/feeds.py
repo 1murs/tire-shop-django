@@ -15,7 +15,8 @@ def generate_ekatalog_xml(request):
             supplier_ids = [s.strip() for s in suppliers_param.split(',') if s.strip()]
 
     product_type = request.GET.get('type', 'all')
-    only_in_stock = request.GET.get('in_stock', '1') == '1'
+    in_stock_param = request.GET.get('in_stock')
+    only_in_stock = in_stock_param == '1' if in_stock_param is not None else False
 
     base_url = request.build_absolute_uri('/').rstrip('/')
 

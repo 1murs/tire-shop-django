@@ -194,6 +194,7 @@ class CatalogAdminSite(admin.AdminSite):
             path('import-prices/start/', self.admin_view(self.start_import_view), name='start_import'),
             path('import-progress/<str:task_id>/', self.admin_view(self.import_progress_view), name='import_progress'),
             path('export-no-images/', self.admin_view(self.export_no_images_view), name='export_no_images'),
+            path('export-skipped/<str:task_id>/', self.admin_view(self.export_skipped_view), name='export_skipped'),
             path('error-logs/', self.admin_view(self.error_logs_view), name='error_logs'),
             path('recalculate-all-prices/', self.admin_view(self.recalculate_all_prices_view), name='recalculate_all_prices'),
             path('xml-feeds/', self.admin_view(self.xml_feeds_view), name='xml_feeds'),
@@ -234,6 +235,13 @@ class CatalogAdminSite(admin.AdminSite):
             else:
                 result = import_disks(file_path, progress_callback=progress_callback, delete_missing=delete_missing)
 
+            skipped_file = ''
+            skipped_rows = result.get('skipped_rows', [])
+            if skipped_rows:
+                skipped_file = f'/tmp/import_skipped_{task_id}.json'
+                with open(skipped_file, 'w') as sf:
+                    json.dump({'type': import_type, 'rows': skipped_rows}, sf, ensure_ascii=False)
+
             self._write_progress(task_id, {
                 'status': 'completed',
                 'current': result['total_rows'],
@@ -245,6 +253,7 @@ class CatalogAdminSite(admin.AdminSite):
                 'errors_count': len(result['errors']),
                 'errors': result['errors'],
                 'message': 'Імпорт завершено!',
+                'skipped_file': skipped_file,
             })
         except Exception as e:
             self._write_progress(task_id, {
@@ -356,6 +365,37 @@ class CatalogAdminSite(admin.AdminSite):
 
         messages.success(request, f"Ціни перераховано: {total_tires} шин, {total_disks} дисків")
         return redirect('admin:import_prices')
+
+    def export_skipped_view(self, request, task_id):
+        from django.http import HttpResponse
+        from openpyxl import Workbook
+
+        skipped_file = f'/tmp/import_skipped_{task_id}.json'
+        try:
+            with open(skipped_file, 'r') as f:
+                data = json.load(f)
+        except (FileNotFoundError, json.JSONDecodeError):
+            return HttpResponse('Файл не знайдено', status=404)
+
+        wb = Workbook()
+        ws = wb.active
+        ws.title = 'Пропущені товари'
+        ws.append(['Рядок в Excel', 'Бренд', 'Модель', 'Причина'])
+
+        for row in data.get('rows', []):
+            ws.append([row['row'], row['brand'], row['model'], row['reason']])
+
+        ws.column_dimensions['A'].width = 14
+        ws.column_dimensions['B'].width = 20
+        ws.column_dimensions['C'].width = 30
+        ws.column_dimensions['D'].width = 50
+
+        import_type = data.get('type', 'items')
+        count = len(data.get('rows', []))
+        response = HttpResponse(content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+        response['Content-Disposition'] = f'attachment; filename="skipped_{import_type}_{count}.xlsx"'
+        wb.save(response)
+        return response
 
     def export_no_images_view(self, request):
         from django.http import HttpResponse
