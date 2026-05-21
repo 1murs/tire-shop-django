@@ -7,7 +7,7 @@
 
   var chatOpen = false;
   var chatPollingTimer = null;
-  var chatLastId = 0;
+  var chatLastId = parseInt(localStorage.getItem('chatLastId')) || 0;
   var chatUnreadCount = 0;
 
   setTimeout(function () {
@@ -74,6 +74,7 @@
     .then(function (data) {
       if (data.success && data.message) {
         chatLastId = Math.max(chatLastId, data.message.id);
+        localStorage.setItem('chatLastId', chatLastId);
       }
       if (!chatPollingTimer) startPolling();
     })
@@ -102,6 +103,7 @@
           data.messages.forEach(function (m) {
             if (m.id > chatLastId) {
               chatLastId = m.id;
+              localStorage.setItem('chatLastId', chatLastId);
               if (m.sender === 'admin') {
                 appendMsg('admin', m.text);
                 if (!chatOpen) {
