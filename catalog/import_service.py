@@ -198,8 +198,8 @@ def import_tires(file_path, progress_callback=None, delete_missing=False):
             else:
                 selling_price = purchase_price
 
-            # Required fields
-            if not all([width, profile, diameter]):
+            # Required fields (profile can be 0 for full-profile tires)
+            if width is None or profile is None or diameter is None:
                 skipped += 1
                 skipped_rows.append({'row': idx + 1, 'brand': brand_name, 'model': model_name, 'reason': f'Немає обовязкових полів (ширина={width}, профіль={profile}, діаметр={diameter})'})
                 continue
