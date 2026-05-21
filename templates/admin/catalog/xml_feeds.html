@@ -55,10 +55,12 @@
     </div>
 
     <div style="margin-bottom: 15px;">
-      <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
-        <input type="checkbox" id="in_stock" checked style="width: 18px; height: 18px;">
-        <span>Тільки товари в наявності</span>
-      </label>
+      <label style="display: block; margin-bottom: 5px; font-weight: bold;">Наявність:</label>
+      <select id="in_stock" style="width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px;">
+        <option value="">Всі товари</option>
+        <option value="1">Тільки в наявності</option>
+        <option value="0">Тільки під замовлення</option>
+      </select>
     </div>
 
     <button type="button" onclick="generateLink()" style="background: #417690; color: white; padding: 12px 25px; border: none; border-radius: 4px; cursor: pointer; font-size: 15px;">
@@ -150,14 +152,14 @@ function generateLink() {
   const type = document.getElementById('type').value;
   const checkboxes = document.querySelectorAll('.supplier-checkbox:checked');
   const selectedSuppliers = Array.from(checkboxes).map(cb => cb.value);
-  const inStock = document.getElementById('in_stock').checked ? '1' : '0';
+  const inStock = document.getElementById('in_stock').value;
 
   let url = '{{ base_url }}/feed/price.xml?';
   const params = [];
 
   if (type !== 'all') params.push('type=' + type);
   if (selectedSuppliers.length > 0) params.push('suppliers=' + selectedSuppliers.join(','));
-  params.push('in_stock=' + inStock);
+  if (inStock) params.push('in_stock=' + inStock);
 
   url += params.join('&');
 

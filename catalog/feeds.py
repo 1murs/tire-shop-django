@@ -15,8 +15,7 @@ def generate_ekatalog_xml(request):
             supplier_ids = [s.strip() for s in suppliers_param.split(',') if s.strip()]
 
     product_type = request.GET.get('type', 'all')
-    in_stock_param = request.GET.get('in_stock')
-    only_in_stock = in_stock_param == '1' if in_stock_param is not None else False
+    in_stock_param = request.GET.get('in_stock')  # 1=в наявності, 0=під замовлення, без параметра=всі
 
     base_url = request.build_absolute_uri('/').rstrip('/')
 
@@ -47,8 +46,10 @@ def generate_ekatalog_xml(request):
 
             if supplier_ids:
                 tires = tires.filter(supplier_id__in=supplier_ids)
-            if only_in_stock:
+            if in_stock_param == '1':
                 tires = tires.filter(in_stock=True)
+            elif in_stock_param == '0':
+                tires = tires.filter(in_stock=False)
 
             season_map = {'summer': 'Літня', 'winter': 'Зимова', 'all_season': 'Всесезонна'}
 
@@ -82,8 +83,10 @@ def generate_ekatalog_xml(request):
 
             if supplier_ids:
                 disks = disks.filter(supplier_id__in=supplier_ids)
-            if only_in_stock:
+            if in_stock_param == '1':
                 disks = disks.filter(in_stock=True)
+            elif in_stock_param == '0':
+                disks = disks.filter(in_stock=False)
 
             type_map = {'alloy': 'Литий', 'steel': 'Сталевий', 'forged': 'Кований'}
 
