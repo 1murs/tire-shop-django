@@ -54,7 +54,7 @@ def generate_ekatalog_xml(request):
             season_map = {'summer': 'Літня', 'winter': 'Зимова', 'all_season': 'Всесезонна'}
 
             for tire in tires.iterator(chunk_size=1000):
-                available = "true" if tire.in_stock else "false"
+                available = "true"
                 name = f"{tire.brand.name} {tire.model_name} {tire.width}/{tire.profile} R{tire.diameter}"
                 season = season_map.get(tire.season, '')
 
@@ -67,6 +67,12 @@ def generate_ekatalog_xml(request):
                     yield f'<picture>{base_url}/media/{tire.image}</picture>\n'
                 yield f'<name>{escape_xml(name)}</name>\n'
                 yield f'<vendor>{escape_xml(tire.brand.name)}</vendor>\n'
+                desc = f"Шина {name}. Сезон: {season}."
+                if tire.load_index:
+                    desc += f" Індекс навантаження: {tire.load_index}."
+                if tire.speed_index:
+                    desc += f" Індекс швидкості: {tire.speed_index}."
+                yield f'<description>{escape_xml(desc)}</description>\n'
                 yield f'<param name="Ширина">{tire.width}</param>\n'
                 yield f'<param name="Профіль">{tire.profile}</param>\n'
                 yield f'<param name="Діаметр">{tire.diameter}</param>\n'
@@ -91,7 +97,7 @@ def generate_ekatalog_xml(request):
             type_map = {'alloy': 'Литий', 'steel': 'Сталевий', 'forged': 'Кований'}
 
             for disk in disks.iterator(chunk_size=1000):
-                available = "true" if disk.in_stock else "false"
+                available = "true"
                 name = f"{disk.brand.name} {disk.model_name} {disk.width}x{disk.diameter} {disk.bolts}x{disk.pcd}"
                 disk_type = type_map.get(disk.disk_type, '')
 
@@ -104,6 +110,8 @@ def generate_ekatalog_xml(request):
                     yield f'<picture>{base_url}/media/{disk.image}</picture>\n'
                 yield f'<name>{escape_xml(name)}</name>\n'
                 yield f'<vendor>{escape_xml(disk.brand.name)}</vendor>\n'
+                desc = f"Диск {name}. Тип: {disk_type}. ET: {disk.et}. DIA: {disk.dia}."
+                yield f'<description>{escape_xml(desc)}</description>\n'
                 yield f'<param name="Діаметр">{disk.diameter}</param>\n'
                 yield f'<param name="Ширина">{disk.width}</param>\n'
                 yield f'<param name="PCD">{disk.bolts}x{disk.pcd}</param>\n'
