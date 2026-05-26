@@ -56,6 +56,10 @@ def generate_ekatalog_xml(request):
             for tire in tires.iterator(chunk_size=1000):
                 available = "true"
                 name = f"{tire.brand.name} {tire.model_name} {tire.width}/{tire.profile} R{tire.diameter}"
+                if tire.load_index:
+                    name += f" {tire.load_index}"
+                if tire.speed_index:
+                    name += tire.speed_index
                 season = season_map.get(tire.season, '')
 
                 yield f'<offer id="tire_{tire.id}" available="{available}">\n'
